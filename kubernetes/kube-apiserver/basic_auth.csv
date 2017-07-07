@@ -1,0 +1,2 @@
+{%- from "kubernetes/map.jinja" import config with context %}
+{{ config.admin.password }},{{ config.admin.username }},admin

@@ -1,0 +1,13 @@
+{%- from "kubernetes/map.jinja" import config with context %}
+{{ config.token.admin }},admin,admin
+{{ config.token.kubelet }},kubelet,kubelet
+{{ config.token.kube_proxy }},kube_proxy,kube_proxy
+{{ config.token.scheduler }},system:scheduler,system:scheduler
+{{ config.token.controller_manager }},system:controller_manager,system:controller_manager
+{%- if config.addons.logging is defined %}
+{{ config.token.logging }},system:logging,system:logging
+{%- endif %}
+{%- if config.addons.monitoring is defined %}
+{{ config.token.monitoring }},system:monitoring,system:monitoring
+{%- endif %}
+{{ config.token.dns }},system:dns,system:dns
