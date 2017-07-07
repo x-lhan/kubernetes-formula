@@ -35,5 +35,4 @@ Pool node:
 
 ## TODO
 
-1. make kubenet/other network plugin working: currently kubenet cannot be used based on an opening [bug](https://github.com/kubernetes/kubernetes/issues/47618) in hyperkube
-2. Include `kube-addon` and other needed sub-component from saltbase
+* Include `kube-addon` and other needed sub-component from saltbase

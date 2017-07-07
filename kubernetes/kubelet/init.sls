@@ -20,20 +20,21 @@
     - user: root
     - group: root
 
-/usr/local/bin/nsenter:
+/usr/bin/nsenter:
   cmd.run:
-    - unless: test -f /usr/local/bin/nsenter
+    - unless: test -f /usr/bin/nsenter
     - name: docker run --rm -v /tmp/hyperkube:/target jpetazzo/nsenter
     - require:
       - file: /tmp/hyperkube
   file.managed:
+    - unless: test -f /usr/bin/nsenter
     - source: /tmp/hyperkube/nsenter
     - mode: 755
     - makedirs: true
     - user: root
     - group: root
     - require:
-      - cmd: /usr/local/bin/nsenter
+      - cmd: /usr/bin/nsenter
 
 /usr/local/bin/hyperkube:
   cmd.run:
@@ -45,6 +46,7 @@
     - onlyif: /bin/false
     {%- endif %}
   file.managed:
+    - unless: test -f /usr/local/bin/hyperkube
     - source: /tmp/hyperkube/hyperkube
     - mode: 755
     - makedirs: true

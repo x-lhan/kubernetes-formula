@@ -11,7 +11,7 @@ kubernetes:
   {% else %}
   is_systemd: False
   {% endif %}
-  network_provider: ""
+  network_provider: "kubenet"
   allow_privileged: true
   log_level: "--v=2"
   kube_docker_registry: "gcr.io/google_containers"
@@ -21,6 +21,7 @@ kubernetes:
   kube-scheduler_docker_tag: {{ version }}
   kube-proxy_docker_tag: {{ version }}
   service_cluster_ip_range: "10.254.0.0/16"
+  cluster_cidr: "10.150.0.0/16"
   admin:
     username: admin
     password: admin
