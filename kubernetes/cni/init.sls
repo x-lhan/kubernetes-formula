@@ -13,6 +13,7 @@
     - makedirs: True
 
 # These are all available CNI network plugins.
+#TODO: make version configurable
 cni-tar:
   archive:
     - extracted

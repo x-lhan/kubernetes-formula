@@ -138,7 +138,7 @@
 {% if config.get('network_provider', '').lower() == 'opencontrail' %}
   {% set network_plugin = "--network-plugin=opencontrail" %}
 {% elif config.get('network_provider', '').lower() == 'cni' %}
-  {% set network_plugin = "--network-plugin=cni --network-plugin-dir=/etc/cni/net.d/" %}
+  {% set network_plugin = "--network-plugin=cni --network-plugin-dir=/etc/cni/net.d/ --cni-bin-dir=/opt/cni/bin/  --cni-conf-dir=/etc/cni/net.d/" %}
 {%elif config.get('network_policy_provider', '').lower() == 'calico' and pillar.kubernetes.master is defined -%}
   {% set network_plugin = "--network-plugin=cni --network-plugin-dir=/etc/cni/net.d/" %}
 {% elif config.get('network_provider', '').lower() == 'kubenet' %}

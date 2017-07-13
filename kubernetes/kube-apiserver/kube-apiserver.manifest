@@ -142,7 +142,7 @@
   {% set image_policy_webhook_config_volume = "{\"name\": \"imagepolicywebhookconfigmount\",\"hostPath\": {\"path\": \"/etc/gcp_image_review.config\"}}," -%}
 {% endif -%}
 
-{% set admission_control = "" -%}
+{% set admission_control = "AlwaysAdmit" -%}
 {% if config['admission_control'] is defined -%}
  {% set admission_control = "--admission-control=" + config['admission_control'] -%}
 {% endif -%}

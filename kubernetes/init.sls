@@ -5,6 +5,7 @@
 include:
   - .base
   - .generate-cert
+
 {%- if pillar.kubernetes.master is defined %}
   
   - .etcd
@@ -32,5 +33,7 @@ include:
   - .kubelet
   - .kube-proxy
 {%- endif %}
-
+{% if config.get('network_provider', '').lower() == 'cni' and config.get('cni_provider', '').lower() == 'flannel'%}
+  - .flannel
+{% endif %}
 {%- endif %}

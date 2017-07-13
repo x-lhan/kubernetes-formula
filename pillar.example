@@ -4,7 +4,7 @@ kubernetes:
   {% else %}
   pool: True
   {% endif %}
-  
+  flannel_bind_iface: eth1
   # Please reference default.yml file for more configurable pillar data
     
     
