@@ -55,9 +55,6 @@ spec:
         configMap:
           name: kube-dns
           optional: true
-      - name: "etc-kube-ssl"
-        hostPath:
-          path: "/srv/kubernetes"
       containers:
       - name: kubedns
         image: gcr.io/google_containers/k8s-dns-kube-dns-amd64:1.14.2
@@ -92,8 +89,6 @@ spec:
         args:
         - --domain={{ config['dns_domain'] }}.
         - --dns-port=10053
-        # - --kubecfg-file=/kube-dns-config/kubeconfig.yaml
-        # - --kube-master-url=https://{{ config.advertise_address }}:6443
         - --v=2
         {{ config['federations_domain_map'] }}
         env:
@@ -112,9 +107,6 @@ spec:
         volumeMounts:
         - name: kube-dns-config
           mountPath: /kube-dns-config
-        - mountPath: /etc/kubernetes/ssl
-          name: "etc-kube-ssl"
-          readOnly: true
       - name: dnsmasq
         image: gcr.io/google_containers/k8s-dns-dnsmasq-nanny-amd64:1.14.2
         livenessProbe:

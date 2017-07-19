@@ -21,24 +21,3 @@ metadata:
   namespace: kube-system
   labels:
     addonmanager.kubernetes.io/mode: EnsureExists
-data:
-  kubeconfig.yaml: |
-    apiVersion: v1
-    kind: Config
-    current-context: cluster.local
-    preferences: {}
-    clusters:
-    - cluster:
-        certificate-authority: /etc/kubernetes/ssl/ca.crt
-        server: https://{{ config.advertise_address }}:6443
-      name: cluster.local
-    contexts:
-    - context:
-        cluster: cluster.local
-        user: kubeconfig
-      name: cluster.local
-    users:
-    - name: kubeconfig
-      user:
-        client-certificate: /etc/kubernetes/ssl/kubecfg.crt
-        client-key: /etc/kubernetes/ssl/kubecfg.key
