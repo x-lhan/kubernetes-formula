@@ -31,8 +31,10 @@ Pool node:
 ## How to use?
 
 1. Create pillar data file based on `pillar.example` file and modify as needed. More configurable pillar data can be referenced from `default.yml`.
-2. Apply `kubernetes` state among cluster master and pool hosts.
+2. Apply `kubernetes` state among cluster master and pool noeds.
+3. (Optional) To use flannel as network plugin, please modify/add pillar data as needed(`flannel_bind_iface: eth1`, `network_provider: cni`) and apply `kubernetes` and `kubernetes.flannel` state to the master node.
 
 ## TODO
 
-* Include `kube-addon` and other needed sub-component from saltbase
+1. add logrotate to generate logs
+2. organize defaults.yml

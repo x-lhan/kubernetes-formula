@@ -5,9 +5,17 @@
 config-network-to-etcd:
   cmd.run:
     - name: >
-        curl http://{{ ips[0] }}:2379/v2/keys/kubernetes.io/network/config 
+        curl -s http://{{ ips[0] }}:2379/v2/keys/kubernetes.io/network/config 
         -XPUT 
-        -d value='{ "Network": "{{ config.cluster_cidr }}", "Backend": {"Type": "vxlan"}}'
+        -d value='{ "Network": "{{ config.cluster_cidr }}", "Backend": {"Type": "{{ config.flannel_backend_mode }}"}}'
+
+ensure-docker-service-running:
+  service.running:
+    - name: docker
+
+ensure-kubelet-service-running:
+  service.running:
+    - name: kubelet
 
 /etc/kubernetes/kube-flannel.yml:
   file.managed:
@@ -20,14 +28,16 @@ config-network-to-etcd:
     - dir_mode: 755
     - require:
       - cmd: config-network-to-etcd
-      - service: docker
-      - service: kubelet
+      - service: ensure-docker-service-running
+      - service: ensure-kubelet-service-running
 
 deploy-flannel-daemonset:
   cmd.run:
     - require:
       - file: /etc/kubernetes/kube-flannel.yml
     - name:  hyperkube kubectl apply -f /etc/kubernetes/kube-flannel.yml
+    - watch:
+      - file: /etc/kubernetes/kube-flannel.yml
 {% endif %}
 
 

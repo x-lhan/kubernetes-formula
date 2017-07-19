@@ -4,10 +4,9 @@
 {%- if pillar.kubernetes is defined %}
 include:
   - .base
-  - .generate-cert
 
 {%- if pillar.kubernetes.master is defined %}
-  
+  - .generate-cert
   - .etcd
 {% if config.get('network_provider', '').lower() == 'kubenet' %}
   - .cni
@@ -19,6 +18,14 @@ include:
   - .kube-scheduler 
   - .docker
   - .kubelet
+  - .kube-proxy
+  - .kube-addons
+{% if config.get('enable_cluster_autoscaler', '').lower() == 'true' %}
+    - .cluster-autoscaler
+{% endif %}
+{% if config.get('enable_rescheduler', '').lower() == 'true' %}
+    - .rescheduler
+{% endif %}
 {%- endif %}
 
 {%- if pillar.kubernetes.pool is defined %}
@@ -33,7 +40,4 @@ include:
   - .kubelet
   - .kube-proxy
 {%- endif %}
-{% if config.get('network_provider', '').lower() == 'cni' and config.get('cni_provider', '').lower() == 'flannel'%}
-  - .flannel
-{% endif %}
 {%- endif %}

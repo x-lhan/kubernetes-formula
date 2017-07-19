@@ -1,11 +1,11 @@
 {% set version = "v1.6.0" %}
+{% set ips = salt['mine.get']('kubernetes:master', 'network.internal_ip', 'pillar').values() -%}
 kubernetes:
   version: {{ version }}
   hyperkube_image: gcr.io/google_containers/hyperkube
   flannel_image: "quay.io/coreos/flannel"
   {% if grains['oscodename'] in [ 'vivid', 'wily', 'jessie', 'xenial', 'yakkety' ] %}
   is_systemd: True
-  admission_control: NamespaceLifecycle,NamespaceExists,ServiceAccount,LimitRanger,ResourceQuota
   systemd_system_path: /lib/systemd/system
   {% elif grains['os_family'] == 'RedHat' %}
   is_systemd: True
@@ -13,8 +13,9 @@ kubernetes:
   {% else %}
   is_systemd: False
   {% endif %}
-  network_provider: "cni"
-  cni_provider: "flannel"
+  admission_control: "NamespaceLifecycle,NamespaceExists,ServiceAccount,LimitRanger,ResourceQuota,SecurityContextDeny"
+  kube_user: "system:anonymous"
+  network_provider: "kubenet"
   allow_privileged: true
   log_level: "--v=2"
   kube_docker_registry: "gcr.io/google_containers"
@@ -26,274 +27,36 @@ kubernetes:
   kube-proxy_docker_tag: {{ version }}
   service_cluster_ip_range: "10.254.0.0/16"
   cluster_cidr: "10.150.0.0/16"
+  master_extra_sans: "IP:10.254.0.1,DNS:kubernetes,DNS:kubernetes.default,DNS:kubernetes.default.svc,DNS:kubernetes.default.svc.cluster.local"
+  advertise_address: {{ ips[0] }}
   flannel_bind_iface: eth0
+  flannel_backend_mode: vxlan
   admin:
     username: admin
     password: admin
-  certs:
-    'ca.crt': |
-        -----BEGIN CERTIFICATE-----
-        MIIDWTCCAkGgAwIBAgIJAPNzYb2UDOAdMA0GCSqGSIb3DQEBCwUAMCIxIDAeBgNV
-        BAMUFzE5Mi4xNjguNTEuNUAxNDk5NDAyMDc0MB4XDTE3MDcwNzA0MzQzNFoXDTI3
-        MDcwNTA0MzQzNFowIjEgMB4GA1UEAxQXMTkyLjE2OC41MS41QDE0OTk0MDIwNzQw
-        ggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCzOgHWFyEGkRS3XMT6X+O/
-        PXEUFOTCmSK9q6ZhOgQShB0tlbMKTTJLXOXGSttInyn1Q6TSd+kZSHcjV1ZjY/X6
-        u/ZpGSwFSH3OtQgCdYfMlH/vr/znuvi+wUtSSS80cC9XOY6lgpswBWIH05hHKWvv
-        9+tNJ+Kc15uyWdn9QFn1jDX1L/duWkg9ERXGrgs6i3jN18yuoyYxwzkMdcLkboa8
-        bxwqHtdVQ6Jgj82H6KaVOuLt1sCL8ne/PiWaiGzW5C35qpw9ylgqUYDZdd/2Dj3M
-        Ml1a7LYCgfll1Ca6OZL0wWA6nS5lZit4xG/fhKzvdI6EHlbbEvF/ExkLk5RXeAxv
-        AgMBAAGjgZEwgY4wHQYDVR0OBBYEFKU/rS76eeI9lcOCtvQk2PqRshu1MFIGA1Ud
-        IwRLMEmAFKU/rS76eeI9lcOCtvQk2PqRshu1oSakJDAiMSAwHgYDVQQDFBcxOTIu
-        MTY4LjUxLjVAMTQ5OTQwMjA3NIIJAPNzYb2UDOAdMAwGA1UdEwQFMAMBAf8wCwYD
-        VR0PBAQDAgEGMA0GCSqGSIb3DQEBCwUAA4IBAQBPgxZEL4WBEbZlvoalKrd0wKe4
-        uQ97D8F8XtugkjSWgmi9eFGPMuevNCOkx/KWnRBzOkWN/q+Y6RdEgpe6I5tHNsu6
-        TPjwkVbSwkBpnsUmJdl+UE+JsWD6hX+Mf1qBJD8e8LXjv4UU43f4zrXoZNAGGGQR
-        UgwmSQitemstYcUO3D8n+nj62ryJ6WFfFq/jswl5iC2Geai/BP/O0C6yl972FMAV
-        thPqWFdyBrDMTmIdsmZn6iCjRtGfITa5CWWwqK64ZuT4+4fmqoK3tjiWBERHJ7Af
-        zqIlaPnNxKEAe+GuLr6afEQvIaNgrsRxc7QXKrFuZcKHh+WT5ctV3bwSy9Yq
-        -----END CERTIFICATE-----
-    'server.key': |
-        -----BEGIN PRIVATE KEY-----
-        MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDQBzvKIO+9/9+x
-        CbXZ6OeBwwcHDjiul0oQbD3+w/m6XWt5sf5XaoTgjC8TLiuNmdv2Cce+RCaRxn+P
-        GrlaTltZdJaJs1Cn5TVG26btC8Hxpv/DVTHon8JtzsLWevuAoO2/YKpWR7FhkjHs
-        pLkXdU5DZBBb/A1SG9XeL72xy+Oe/skISfdtxO4g1yH1TkI5+67VHnTStyvKruRn
-        sGsw3OT37DqlJ25mniI8mHaupVJIHITGyduxIoM05EEpmTHSxZPOjSVRfd/vC0ob
-        DThsvKSlIWDDR7aH/5vceJlUbeOxp8o6/g7/NhIMmplYAF3d/u7oWRQS0ld4e0R1
-        o+lEZTJ3AgMBAAECggEBAKU5WY+M4V1y4OPn5nuQtG8ny2kbLoHcv4KTthmm5a3T
-        jQ03Bd/ARpFiRfFh9k2dKkscMX04+7lEgwPSIe1L1toR846i0SjIr6v7wXT8pamd
-        Df7Cp8UvPmmgkrdvLlpXdv1NdXzZrFTmnKhrnGa5UNPNogCtDJdubErweCXC3qLk
-        I0ArfvtZq8Cyvs0SeVy4C2U4blNhrPVg0EPZI5F+XgJJ/oSdXwUKtlBOL7a0tPkY
-        KrYtRbbtoSvXOKo0M3oVCJumDvDH0cZAizCjiSfOgR7IgQZWR7avtzlMpGhEf9qE
-        aaHcKptM/Gj0su3JlF3YsUATbre13gJNbigslZYEsOECgYEA8CtQkR1MpqLrPKIJ
-        oLrP8NH2pwgvMx1HFfIgW8OJpWOzkYYoAlz6Azo51I95IVog1TB0+lpEkRvjMhEQ
-        jWIfm0znmei5dnkHdO+3cqF3SYGLsYLW3y7/+3bQXkMegMM3sPvcFCTkYjLiAPOu
-        p4tyiI2pN8YhqkDYZmFcHzmvDVMCgYEA3b2QLMcNo2kTa6urrw4f/0KeyURxRHsN
-        9Bb4ROJjNI8gSEKG7c5g7C4UbZJfnfJONqrty9EEgOns83fsD0BPZdz+RmxLc7hM
-        48e9H7OCD6sfBSr2MSD5Q00bOoMms+2wY1edxwmnSLKCEDSmX2RTyVLQhebNfRPa
-        vEsdP5Kyfc0CgYEAzbXsDj+wVdKZ9pc78+XPEhBlWfBSrU9Ygd2gBblYfscFGZJ1
-        VoDYzEblHcG+GOkf0jrtFzqWHExsr4eaS99N/zFB9rw1jtpfnrNsx8yxZc6GHodZ
-        EFUrgPHly7dluxh67Sbs/HwU+l9m4TXX1T5F3dyoolMcpr1gHWErDLvVym0CgYB0
-        xcx0WEtNYBuTGy/pm2WsVpgqY/nGV4tsnOAX3qTh2/HjO+20tHeESWwGnAvwsNcR
-        oQhjymo1vXtEaEYPbg2iFjRuP7+obElJtzlYxX7b44ENhqdqDfRWxfdt4/1wyd6X
-        Il/7npDTDvbBtAhdugcJwawAqCBVGyyY9nGrtgR7jQKBgG8xNKndbJsxNmgFg83Q
-        DZpCnaSP4t6WdV8yzFaYQnyohwp6bgNxR5wW+wXGnWCc41hv2Rz9xICgeEJJbprR
-        RX4Tf5VqEoUYvWIznaWW9wC6l/NfcxTZyDtJrppVBLrLAWuQF2+sSFf+yBRsdd88
-        Xy+uhRfnRtzMxkeTg296Ztpt
-        -----END PRIVATE KEY-----
-    'server.cert': |
-        Certificate:
-            Data:
-                Version: 3 (0x2)
-                Serial Number: 1 (0x1)
-            Signature Algorithm: sha256WithRSAEncryption
-                Issuer: CN=192.168.51.5@1499402074
-                Validity
-                    Not Before: Jul  7 04:34:34 2017 GMT
-                    Not After : Jul  5 04:34:34 2027 GMT
-                Subject: CN=kubernetes-master
-                Subject Public Key Info:
-                    Public Key Algorithm: rsaEncryption
-                        Public-Key: (2048 bit)
-                        Modulus:
-                            00:d0:07:3b:ca:20:ef:bd:ff:df:b1:09:b5:d9:e8:
-                            e7:81:c3:07:07:0e:38:ae:97:4a:10:6c:3d:fe:c3:
-                            f9:ba:5d:6b:79:b1:fe:57:6a:84:e0:8c:2f:13:2e:
-                            2b:8d:99:db:f6:09:c7:be:44:26:91:c6:7f:8f:1a:
-                            b9:5a:4e:5b:59:74:96:89:b3:50:a7:e5:35:46:db:
-                            a6:ed:0b:c1:f1:a6:ff:c3:55:31:e8:9f:c2:6d:ce:
-                            c2:d6:7a:fb:80:a0:ed:bf:60:aa:56:47:b1:61:92:
-                            31:ec:a4:b9:17:75:4e:43:64:10:5b:fc:0d:52:1b:
-                            d5:de:2f:bd:b1:cb:e3:9e:fe:c9:08:49:f7:6d:c4:
-                            ee:20:d7:21:f5:4e:42:39:fb:ae:d5:1e:74:d2:b7:
-                            2b:ca:ae:e4:67:b0:6b:30:dc:e4:f7:ec:3a:a5:27:
-                            6e:66:9e:22:3c:98:76:ae:a5:52:48:1c:84:c6:c9:
-                            db:b1:22:83:34:e4:41:29:99:31:d2:c5:93:ce:8d:
-                            25:51:7d:df:ef:0b:4a:1b:0d:38:6c:bc:a4:a5:21:
-                            60:c3:47:b6:87:ff:9b:dc:78:99:54:6d:e3:b1:a7:
-                            ca:3a:fe:0e:ff:36:12:0c:9a:99:58:00:5d:dd:fe:
-                            ee:e8:59:14:12:d2:57:78:7b:44:75:a3:e9:44:65:
-                            32:77
-                        Exponent: 65537 (0x10001)
-                X509v3 extensions:
-                    X509v3 Basic Constraints:
-                        CA:FALSE
-                    X509v3 Subject Key Identifier:
-                        E1:B2:90:74:8C:A1:5A:83:4C:B0:BA:15:3B:3C:51:8D:B9:1F:86:02
-                    X509v3 Authority Key Identifier:
-                        keyid:A5:3F:AD:2E:FA:79:E2:3D:95:C3:82:B6:F4:24:D8:FA:91:B2:1B:B5
-                        DirName:/CN=192.168.51.5@1499402074
-                        serial:F3:73:61:BD:94:0C:E0:1D
-
-                    X509v3 Extended Key Usage:
-                        TLS Web Server Authentication
-                    X509v3 Key Usage:
-                        Digital Signature, Key Encipherment
-                    X509v3 Subject Alternative Name:
-                        IP Address:192.168.51.5
-            Signature Algorithm: sha256WithRSAEncryption
-                 61:00:90:41:66:2b:e6:62:28:ac:6a:9b:92:1d:cc:13:65:b8:
-                 5a:fe:23:17:fd:e4:82:af:d6:95:06:92:e5:87:0b:22:16:98:
-                 3d:29:6d:ce:66:f0:9a:f2:56:5b:48:97:25:25:1c:47:39:5b:
-                 25:8c:56:19:bc:b3:73:8d:29:0a:c3:6f:bb:9e:bd:a0:01:22:
-                 7b:f8:82:4c:cf:a8:b7:c6:2d:c8:53:c8:e1:9b:d8:9e:9f:76:
-                 1d:a0:4a:f2:aa:35:f7:13:08:e7:9b:0c:38:e3:a3:47:a2:66:
-                 6f:ee:4c:c4:0f:0d:eb:97:e4:aa:75:2a:dd:e8:0d:06:d0:79:
-                 10:4e:97:7d:01:5b:12:d8:2e:d2:42:c4:cb:31:e1:08:66:52:
-                 4e:22:f5:e6:d5:b6:1f:1d:93:00:4c:d0:9c:86:4d:44:36:5e:
-                 0b:b1:c1:9b:96:da:cd:bc:d8:c3:6d:cc:75:84:c4:38:59:55:
-                 94:03:10:a6:21:8a:0e:af:8f:9d:08:2a:0a:ae:ee:c6:4c:c9:
-                 e1:a4:2c:ea:f5:5f:b2:9f:5b:33:05:a7:93:49:88:3c:b4:bb:
-                 de:5a:e2:b0:03:c5:e8:24:27:cf:00:cd:b0:7b:55:76:6b:55:
-                 03:b0:79:eb:e5:71:2f:e1:ac:09:c9:b0:b8:48:0d:8f:c0:d3:
-                 98:08:01:e9
-        -----BEGIN CERTIFICATE-----
-        MIIDbjCCAlagAwIBAgIBATANBgkqhkiG9w0BAQsFADAiMSAwHgYDVQQDFBcxOTIu
-        MTY4LjUxLjVAMTQ5OTQwMjA3NDAeFw0xNzA3MDcwNDM0MzRaFw0yNzA3MDUwNDM0
-        MzRaMBwxGjAYBgNVBAMTEWt1YmVybmV0ZXMtbWFzdGVyMIIBIjANBgkqhkiG9w0B
-        AQEFAAOCAQ8AMIIBCgKCAQEA0Ac7yiDvvf/fsQm12ejngcMHBw44rpdKEGw9/sP5
-        ul1rebH+V2qE4IwvEy4rjZnb9gnHvkQmkcZ/jxq5Wk5bWXSWibNQp+U1Rtum7QvB
-        8ab/w1Ux6J/Cbc7C1nr7gKDtv2CqVkexYZIx7KS5F3VOQ2QQW/wNUhvV3i+9scvj
-        nv7JCEn3bcTuINch9U5COfuu1R500rcryq7kZ7BrMNzk9+w6pSduZp4iPJh2rqVS
-        SByExsnbsSKDNORBKZkx0sWTzo0lUX3f7wtKGw04bLykpSFgw0e2h/+b3HiZVG3j
-        safKOv4O/zYSDJqZWABd3f7u6FkUEtJXeHtEdaPpRGUydwIDAQABo4G0MIGxMAkG
-        A1UdEwQCMAAwHQYDVR0OBBYEFOGykHSMoVqDTLC6FTs8UY25H4YCMFIGA1UdIwRL
-        MEmAFKU/rS76eeI9lcOCtvQk2PqRshu1oSakJDAiMSAwHgYDVQQDFBcxOTIuMTY4
-        LjUxLjVAMTQ5OTQwMjA3NIIJAPNzYb2UDOAdMBMGA1UdJQQMMAoGCCsGAQUFBwMB
-        MAsGA1UdDwQEAwIFoDAPBgNVHREECDAGhwTAqDMFMA0GCSqGSIb3DQEBCwUAA4IB
-        AQBhAJBBZivmYiisapuSHcwTZbha/iMX/eSCr9aVBpLlhwsiFpg9KW3OZvCa8lZb
-        SJclJRxHOVsljFYZvLNzjSkKw2+7nr2gASJ7+IJMz6i3xi3IU8jhm9ien3YdoEry
-        qjX3Ewjnmww446NHomZv7kzEDw3rl+SqdSrd6A0G0HkQTpd9AVsS2C7SQsTLMeEI
-        ZlJOIvXm1bYfHZMATNCchk1ENl4LscGbltrNvNjDbcx1hMQ4WVWUAxCmIYoOr4+d
-        CCoKru7GTMnhpCzq9V+yn1szBaeTSYg8tLveWuKwA8XoJCfPAM2we1V2a1UDsHnr
-        5XEv4awJybC4SA2PwNOYCAHp
-        -----END CERTIFICATE-----
-    "kubecfg.key": |
-        -----BEGIN PRIVATE KEY-----
-        MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCUROn6iOmKoqm9
-        wtW90VZAgVls2tQrVjh6vOvi2ag3DSuTdYsU9fEdAIIp6RsVHrgi5effCdy61l1d
-        rA13ofRATm1QAtY+dTmLDgLN1x+5oCMZG/SQpiDHPqwl2HCTurnj+XxkNlonxDR8
-        aXkD7bUzYj4nENxybX9/RT21OYHjyi3A7QmZXZJt8YognybCUSHn73Ponybt4sju
-        zXEw6II9vNzLH2xwmuHf1yHUPbdSK4iOhrLhqAFdJOohDlkiS8xBoAr8sPoS+IXL
-        GYtw+OEezbqU0hnitwVG1Ubtmtn6qBUloMFPHHR4VEdHhK1/7Ch5M3Y23ssN8E7A
-        prrRLuaBAgMBAAECggEAYGLcaE4Q5FsSVZYPNTKdC5oK9ETdoL6QQNoHzpUIUaFy
-        Lo4/OAUaFWx7MZukS3qI4cbrkYbrw1oPoBF1P8w86IETduwhMsEqA0e8cuviZ92+
-        c1hFCLO2o1AOwRuPM7ozlgxd3ReoTCm0pRw7213wadL37JV9ebXNKINuth0IX3fW
-        L39JYHXKovHgEMevckEJMNf5OuckeMqHrkx5KVhYeIgAAAVbPVL5vuiunkmxmmaK
-        oYBho0gjAAq+D6SPlXIWN+GyVx5/14z5eg+LvVzbPuYPjGbPVykLw/s09n8oDNSG
-        xHikb9baZm4x5RmKcZnO6xDCUQLTRsK2zjGK3uZCQQKBgQDDtsCZEIZo6eIeaQIg
-        5WUZkuxQZGUqMpmuDKg0P8T2f2ySO10yV3X+jYbUYgtkHTGzKRRcJskQlPE6aY87
-        Ds2zp6GbezNbCLWpo5PZ+fPJpLGecydbeq/EQHh1Vn1fN28LxIrWtrOEQgJhkPIz
-        MPSHAQWodr7h73s1WgYquMm4vQKBgQDB8NsG2lM84kaKJ21V442HcYkAvoKHj1S8
-        OjW6wX3oXsU+bHFUHMKW1HNDxBtlYIbqI3OeKjc7h996ZGQIyvfQGWfRKAa5kA+P
-        /gf6T3ptq0c26oQMacGtolucfG9ss7dw0jkrtD8/ZppvFEPilCnWXauAAnqwstbj
-        s1iFzjcrFQKBgAu6LKo/Uj6BHTqDQkxkUn2Izz419dXkeE70lTOkSpIWqpPMmNYG
-        ZZyeMGETiukx0qOQp5aqAExNEHNWle2NAohsWAOwCzC+QdxrX9Wk45XGl5oN/mK9
-        5EBXOKCXUSXedXn4CfW5tuIK7oeYHtswaMaaKhOhIej556EXxtzSe8vlAoGBAL6Z
-        jyg0+Qkk+F5eUT3P3Q/3rMVmdbH0UzqJmrRn5O2x9fdbbCVV/odtU7qNyL7hFraV
-        ENOoeY+wARmwAAAEOXfy/+y2gaVsx16kMgL2iUOuyNZXtF7esNGMdqxcPsV9+hKP
-        CFDDXEVa+Puh1vWe118tv5aW2S0/FaHCaIVYHS/hAoGBAKBPBvooJ73J9XTHzd0d
-        iFwA5jeXOZipeDU9zlwfIqnxlPlpA0LGzKNDMwkdypAeeE8++5V4WDs6EopIfab0
-        QMfIOQ7GJmrGuMRswRMQuat/2W0y/ewahelV8avgWRDagR+AG1AYmclZVN+x2e8Q
-        WDRFGPVp+7qPc2fbfBEhWJHb
-        -----END PRIVATE KEY-----
-    "kubecfg.crt": |
-        Certificate:
-            Data:
-                Version: 3 (0x2)
-                Serial Number: 2 (0x2)
-            Signature Algorithm: sha256WithRSAEncryption
-                Issuer: CN=192.168.51.5@1499925679
-                Validity
-                    Not Before: Jul 13 06:01:20 2017 GMT
-                    Not After : Jul 11 06:01:20 2027 GMT
-                Subject: O=system:masters, CN=kubecfg
-                Subject Public Key Info:
-                    Public Key Algorithm: rsaEncryption
-                        Public-Key: (2048 bit)
-                        Modulus:
-                            00:94:44:e9:fa:88:e9:8a:a2:a9:bd:c2:d5:bd:d1:
-                            56:40:81:59:6c:da:d4:2b:56:38:7a:bc:eb:e2:d9:
-                            a8:37:0d:2b:93:75:8b:14:f5:f1:1d:00:82:29:e9:
-                            1b:15:1e:b8:22:e5:e7:df:09:dc:ba:d6:5d:5d:ac:
-                            0d:77:a1:f4:40:4e:6d:50:02:d6:3e:75:39:8b:0e:
-                            02:cd:d7:1f:b9:a0:23:19:1b:f4:90:a6:20:c7:3e:
-                            ac:25:d8:70:93:ba:b9:e3:f9:7c:64:36:5a:27:c4:
-                            34:7c:69:79:03:ed:b5:33:62:3e:27:10:dc:72:6d:
-                            7f:7f:45:3d:b5:39:81:e3:ca:2d:c0:ed:09:99:5d:
-                            92:6d:f1:8a:20:9f:26:c2:51:21:e7:ef:73:e8:9f:
-                            26:ed:e2:c8:ee:cd:71:30:e8:82:3d:bc:dc:cb:1f:
-                            6c:70:9a:e1:df:d7:21:d4:3d:b7:52:2b:88:8e:86:
-                            b2:e1:a8:01:5d:24:ea:21:0e:59:22:4b:cc:41:a0:
-                            0a:fc:b0:fa:12:f8:85:cb:19:8b:70:f8:e1:1e:cd:
-                            ba:94:d2:19:e2:b7:05:46:d5:46:ed:9a:d9:fa:a8:
-                            15:25:a0:c1:4f:1c:74:78:54:47:47:84:ad:7f:ec:
-                            28:79:33:76:36:de:cb:0d:f0:4e:c0:a6:ba:d1:2e:
-                            e6:81
-                        Exponent: 65537 (0x10001)
-                X509v3 extensions:
-                    X509v3 Basic Constraints:
-                        CA:FALSE
-                    X509v3 Subject Key Identifier:
-                        0B:70:BB:28:50:76:15:A6:A5:9A:FB:FB:56:41:9B:9A:97:18:C5:39
-                    X509v3 Authority Key Identifier:
-                        keyid:D5:1A:33:2A:E5:DE:72:7A:63:C5:CD:BB:69:40:CA:0E:C3:9D:AB:0D
-                        DirName:/CN=192.168.51.5@1499925679
-                        serial:FC:7E:EF:A0:55:25:50:E2
-
-                    X509v3 Extended Key Usage:
-                        TLS Web Client Authentication
-                    X509v3 Key Usage:
-                        Digital Signature
-            Signature Algorithm: sha256WithRSAEncryption
-                 8a:2a:b5:c2:bb:b3:78:c2:7c:76:c8:fa:ce:7d:9d:43:68:6b:
-                 8e:7e:ed:95:43:4d:46:60:7d:3c:37:dc:6f:ab:e4:58:3b:40:
-                 7a:fe:e1:fe:aa:d5:9c:0a:a2:5b:8e:ed:78:74:77:60:99:00:
-                 a4:67:50:e6:55:0e:2a:4b:9b:6d:00:a3:17:e8:a7:a0:b1:32:
-                 e4:25:b7:c1:91:97:95:da:83:c1:14:b7:b7:a9:9e:21:b9:fd:
-                 63:66:ec:21:34:88:57:0c:5d:fb:a6:fb:b1:50:2e:2f:f0:15:
-                 99:5b:cc:25:e4:3e:d7:c3:63:a0:3b:d9:66:46:e9:ba:a9:9b:
-                 27:15:a6:a0:85:4d:7f:f3:0f:57:16:23:0b:13:41:f6:f9:41:
-                 de:4e:98:f3:9d:67:0f:d2:94:60:28:4f:b1:26:ea:2a:3f:59:
-                 31:b7:05:bd:a9:ce:3d:79:bf:4b:16:85:b7:2b:06:be:70:ad:
-                 c7:be:ec:50:58:7c:43:f8:24:9c:43:68:07:63:62:b1:06:9c:
-                 c4:cd:3e:87:fc:ff:7e:33:e8:cc:66:11:09:00:14:1c:76:14:
-                 1e:17:c6:d4:cb:a3:34:4e:b9:08:d5:7a:0c:4a:b2:bb:7b:63:
-                 c9:72:b1:d9:fd:95:ad:c1:bd:93:97:d5:41:23:ba:0d:cf:3d:
-                 06:9c:64:66
-        -----BEGIN CERTIFICATE-----
-        MIIDbDCCAlSgAwIBAgIBAjANBgkqhkiG9w0BAQsFADAiMSAwHgYDVQQDFBcxOTIu
-        MTY4LjUxLjVAMTQ5OTkyNTY3OTAeFw0xNzA3MTMwNjAxMjBaFw0yNzA3MTEwNjAx
-        MjBaMCsxFzAVBgNVBAoTDnN5c3RlbTptYXN0ZXJzMRAwDgYDVQQDEwdrdWJlY2Zn
-        MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlETp+ojpiqKpvcLVvdFW
-        QIFZbNrUK1Y4erzr4tmoNw0rk3WLFPXxHQCCKekbFR64IuXn3wncutZdXawNd6H0
-        QE5tUALWPnU5iw4CzdcfuaAjGRv0kKYgxz6sJdhwk7q54/l8ZDZaJ8Q0fGl5A+21
-        M2I+JxDccm1/f0U9tTmB48otwO0JmV2SbfGKIJ8mwlEh5+9z6J8m7eLI7s1xMOiC
-        Pbzcyx9scJrh39ch1D23UiuIjoay4agBXSTqIQ5ZIkvMQaAK/LD6EviFyxmLcPjh
-        Hs26lNIZ4rcFRtVG7ZrZ+qgVJaDBTxx0eFRHR4Stf+woeTN2Nt7LDfBOwKa60S7m
-        gQIDAQABo4GjMIGgMAkGA1UdEwQCMAAwHQYDVR0OBBYEFAtwuyhQdhWmpZr7+1ZB
-        m5qXGMU5MFIGA1UdIwRLMEmAFNUaMyrl3nJ6Y8XNu2lAyg7DnasNoSakJDAiMSAw
-        HgYDVQQDFBcxOTIuMTY4LjUxLjVAMTQ5OTkyNTY3OYIJAPx+76BVJVDiMBMGA1Ud
-        JQQMMAoGCCsGAQUFBwMCMAsGA1UdDwQEAwIHgDANBgkqhkiG9w0BAQsFAAOCAQEA
-        iiq1wruzeMJ8dsj6zn2dQ2hrjn7tlUNNRmB9PDfcb6vkWDtAev7h/qrVnAqiW47t
-        eHR3YJkApGdQ5lUOKkubbQCjF+inoLEy5CW3wZGXldqDwRS3t6meIbn9Y2bsITSI
-        Vwxd+6b7sVAuL/AVmVvMJeQ+18NjoDvZZkbpuqmbJxWmoIVNf/MPVxYjCxNB9vlB
-        3k6Y851nD9KUYChPsSbqKj9ZMbcFvanOPXm/SxaFtysGvnCtx77sUFh8Q/gknENo
-        B2NisQacxM0+h/z/fjPozGYRCQAUHHYUHhfG1MujNE65CNV6DEqyu3tjyXKx2f2V
-        rcG9k5fVQSO6Dc89BpxkZg==
-        -----END CERTIFICATE-----
   token:
     admin: DFvQ8GJ9JD4fKNfuyEddw3rjnFTkUKsv
     controller_manager: EreGh6AnWf8DxH8cYavB2zS029PUi7vx
     dns: RAFeVSE4UvsCz4gk3KYReuOI5jsZ1Xt3
     kube_proxy: DFvQ8GelB7afH3wClC9romaMPhquyyEe
-    kubelet: 7bN5hJ9JD4fKjnFTkUKsvVNfuyEddw3r
+    kubelet:  7bN5hJ9JD4fKjnFTkUKsvVNfuyEddw3r
     logging: MJkXKdbgqRmTHSa2ykTaOaMykgO6KcEf
     monitoring: hnsj0XqABgrSww7Nqo7UVTSZLJUt2XRd
     scheduler: HY1UUxEPpmjW4a1dDLGIANYQp1nZkLDk
-  kube_user: 'system:anonymous'
+  
+  
   addons:
     logging: True
     monitoring: True
+  
   # etcd
   keep_host_etcd: False
+  # Addons
+  # dns
+  enable_cluster_dns: True
+  dns_server: 10.254.254.254
+  dns_domain: cluster.local
+  federations_domain_map: ""
+  # dashboard
+  enable_cluster_ui: True
+      

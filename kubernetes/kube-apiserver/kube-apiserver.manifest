@@ -37,8 +37,8 @@
 {% endif -%}
 
 {% set advertise_address = "" -%}
-{% if grains.advertise_address is defined -%}
-  {% set advertise_address = "--advertise-address=" + grains.advertise_address -%}
+{% if config.advertise_address is defined -%}
+  {% set advertise_address = "--advertise-address=" + config.advertise_address -%}
 {% endif -%}
 
 {% set proxy_ssh_options = "" -%}
@@ -91,6 +91,10 @@
 {% set key_file = "--tls-private-key-file=/srv/kubernetes/server.key" -%}
 {% set kubelet_cert_file = "--kubelet-client-certificate=/srv/kubernetes/kubecfg.crt" -%}
 {% set kubelet_key_file = "--kubelet-client-key=/srv/kubernetes/kubecfg.key" -%}
+{% set kubelet_preferred_address_types = "" %}
+{% if config.kubelet_preferred_address_types is defined %}
+{% set kubelet_preferred_address_types = "--kubelet-preferred-address-types=" + config.kubelet_preferred_address_types %}
+{% endif %}
 {% set client_ca_file = "" -%}
 
 {% set secure_port = "6443" -%}
@@ -142,7 +146,7 @@
   {% set image_policy_webhook_config_volume = "{\"name\": \"imagepolicywebhookconfigmount\",\"hostPath\": {\"path\": \"/etc/gcp_image_review.config\"}}," -%}
 {% endif -%}
 
-{% set admission_control = "AlwaysAdmit" -%}
+{% set admission_control = "" -%}
 {% if config['admission_control'] is defined -%}
  {% set admission_control = "--admission-control=" + config['admission_control'] -%}
 {% endif -%}
@@ -178,7 +182,7 @@
 {% endif -%}
 
 {% set params = address + " " + storage_backend + " " + storage_media_type + " " + etcd_servers + " " + etcd_servers_overrides + " " + cloud_provider + " " + cloud_config + " " + runtime_config + " " + feature_gates + " " + admission_control + " " + max_requests_inflight + " " + target_ram_mb + " " + service_cluster_ip_range + " " + client_ca_file + basic_auth_file + " " + min_request_timeout + " " + enable_garbage_collector + " " + etcd_quorum_read + " " + audit_log -%}
-{% set params = params + " " + cert_file + " " + key_file + " " + kubelet_cert_file + " " + kubelet_key_file + " --secure-port=" + secure_port + token_auth_file + " " + bind_address + " " + log_level + " " + advertise_address  + " " + proxy_ssh_options + authz_mode + abac_policy_file + webhook_authentication_config + webhook_authorization_config + image_review_config -%}
+{% set params = params + " " + cert_file + " " + key_file + " " + kubelet_cert_file + " " + kubelet_key_file + " " + kubelet_preferred_address_types + " --secure-port=" + secure_port + token_auth_file + " " + bind_address + " " + log_level + " " + advertise_address  + " " + proxy_ssh_options + authz_mode + abac_policy_file + webhook_authentication_config + webhook_authorization_config + image_review_config -%}
 
 # test_args has to be kept at the end, so they'll overwrite any prior configuration
 {% if config['apiserver_test_args'] is defined -%}

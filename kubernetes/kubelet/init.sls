@@ -62,6 +62,7 @@
 /var/lib/kubelet/kubeconfig:
   file.managed:
     - source: salt://kubernetes/kubelet/kubeconfig
+    - template: jinja
     - user: root
     - group: root
     - mode: 400

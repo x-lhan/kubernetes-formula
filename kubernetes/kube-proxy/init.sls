@@ -1,6 +1,7 @@
 /var/lib/kube-proxy/kubeconfig:
   file.managed:
     - source: salt://kubernetes/kube-proxy/kubeconfig
+    - template: jinja
     - user: root
     - group: root
     - mode: 400

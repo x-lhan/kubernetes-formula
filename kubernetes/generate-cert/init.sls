@@ -15,7 +15,6 @@ kube-cert:
 {% endfor %}
 
 {% else %}
-{% set master_extra_sans=grains.get('master_extra_sans', '') %}
 {% if grains.cloud is defined %}
   {% if grains.cloud == 'gce' %}
     {% set cert_ip='_use_gce_external_ip_' %}
@@ -32,6 +31,7 @@ kube-cert:
 {% endif %}
 
 {% set cert_ip = salt['mine.get']('kubernetes:master', 'network.internal_ip', 'pillar').values()[0] %}
+{% set master_extra_sans=config.get('master_extra_sans', 'DNS:kubernetes,DNS:kubernetes.default,DNS:kubernetes.default.svc,DNS:kubernetes.default.svc.cluster.local') %}
 
 # If there is a config defined, override any defaults.
 {% if config['cert_ip'] is defined %}

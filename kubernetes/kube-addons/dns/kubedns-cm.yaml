@@ -1,0 +1,44 @@
+{% from "kubernetes/map.jinja" import config with context %}
+
+# Copyright 2016 The Kubernetes Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kube-dns
+  namespace: kube-system
+  labels:
+    addonmanager.kubernetes.io/mode: EnsureExists
+data:
+  kubeconfig.yaml: |
+    apiVersion: v1
+    kind: Config
+    current-context: cluster.local
+    preferences: {}
+    clusters:
+    - cluster:
+        certificate-authority: /etc/kubernetes/ssl/ca.crt
+        server: https://{{ config.advertise_address }}:6443
+      name: cluster.local
+    contexts:
+    - context:
+        cluster: cluster.local
+        user: kubeconfig
+      name: cluster.local
+    users:
+    - name: kubeconfig
+      user:
+        client-certificate: /etc/kubernetes/ssl/kubecfg.crt
+        client-key: /etc/kubernetes/ssl/kubecfg.key
