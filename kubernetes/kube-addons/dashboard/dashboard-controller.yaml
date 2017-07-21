@@ -38,14 +38,7 @@ spec:
             port: 9090
           initialDelaySeconds: 30
           timeoutSeconds: 30
-        volumeMounts:
-        - mountPath: /etc/kubernetes/ssl
-          name: "etc-kube-ssl"
-          readOnly: true
       tolerations:
       - key: "CriticalAddonsOnly"
         operator: "Exists"
-      volumes:
-        - name: "etc-kube-ssl"
-          hostPath:
-            path: "/srv/kubernetes"
+

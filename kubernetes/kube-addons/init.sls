@@ -1,8 +1,9 @@
 {% from "kubernetes/map.jinja" import config with context %}
-
+{% if config.get("reset_addons", false) %}
 addon-dir-delete:
   file.absent:
     - name: /etc/kubernetes/addons
+{% endif %}
 
 addon-dir-create:
   file.directory:
@@ -10,8 +11,11 @@ addon-dir-create:
     - user: root
     - group: root
     - mode: 0755
+{% if config.get("reset_addons", false) %}
     - require:
         - file: addon-dir-delete
+{% endif %}
+        
 
 {% if config.get('enable_cluster_monitoring', '').lower() == 'influxdb' %}
 /etc/kubernetes/addons/cluster-monitoring/influxdb:

@@ -4,7 +4,9 @@
 {%- if pillar.kubernetes is defined %}
 include:
   - .base
-
+{% if config.get("reset_kubelet", False) %}
+  - .kubelet.clear
+{% endif %}
 {%- if pillar.kubernetes.master is defined %}
   - .generate-cert
   - .etcd
