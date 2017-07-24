@@ -18,7 +18,7 @@ Pool node:
 
 ## Pre-request
 
-1. Docker installation is not in the scope of this formula. It is required docker installed and running.
+1. Docker installation is not in the scope of this formula. It is required docker installed and running. Please make sure `iptables=false` and `ip-masq=false` docker opts are set.
 2. A mine function `network.internal_ip`, distributed to all minions, that returns the internal IP address to use for apiserver communication. Example pillar data:
 
 ```
