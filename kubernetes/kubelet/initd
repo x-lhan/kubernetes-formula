@@ -72,6 +72,10 @@ do_stop()
         #   1 if daemon was already stopped
         #   2 if daemon could not be stopped
         #   other if a failure occurred
+        if [ ! -f $PIDFILE ]; then
+          return "1"
+        fi
+        
         PID=$(cat $PIDFILE)
 
         kill -9 $PID
