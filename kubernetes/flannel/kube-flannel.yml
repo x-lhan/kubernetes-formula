@@ -21,7 +21,16 @@ data:
       "name": "cbr0",
       "type": "flannel",
       "delegate": {
+        "bridge": "cbr0",
+        "forceAddress": true,
         "isDefaultGateway": true
+      }
+    }
+  net-conf.json: |
+    {
+      "Network": "{{ config.cluster_cidr }}",
+      "Backend": {
+        "Type": "{{ config.flannel_backend_mode }}"
       }
     }
 ---
@@ -51,7 +60,7 @@ spec:
       containers:
       - name: kube-flannel
         image: {{ config.flannel_image }}:{{ config.flannel_docker_tag }}
-        command: [ "/opt/bin/flanneld", "--etcd-endpoints=http://{{ ips[0] }}:2379","--ip-masq", "--etcd-prefix=/kubernetes.io/network", "-iface", "{{ config.flannel_bind_iface }}" ]
+        command: [ "/opt/bin/flanneld", "--ip-masq", "--kube-subnet-mgr", "-iface", "{{ config.flannel_bind_iface }}" ]
         securityContext:
           privileged: true
         env:

@@ -19,7 +19,7 @@
 {% if config.get('network_provider', '').lower() == 'kubenet' %}
   {% set allocate_node_cidrs = "--allocate-node-cidrs=true" -%}
 {% elif config['allocate_node_cidrs'] is defined -%}
-  {% set allocate_node_cidrs = "--allocate-node-cidrs=" + config['allocate_node_cidrs'] -%}
+  {% set allocate_node_cidrs = "--allocate-node-cidrs=" ~ config['allocate_node_cidrs'] -%}
 {% endif -%}
 {% if config['terminated_pod_gc_threshold'] is defined -%}
   {% set terminated_pod_gc = "--terminated-pod-gc-threshold=" + config['terminated_pod_gc_threshold'] -%}

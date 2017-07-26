@@ -33,7 +33,7 @@ Pool node:
 1. Create pillar data file based on `pillar.example` file and modify as needed. More configurable pillar data can be referenced from `default.yml`.
 2. Apply `kubernetes` state among cluster master and pool noeds.
 3. (Optional) To use flannel as network plugin, please modify/add pillar data as needed(`flannel_bind_iface: eth1`, `network_provider: cni`) and apply `kubernetes` and `kubernetes.flannel` state to the master node.
-4. (Optional) For easier debugging purpose: a `kuberenetes.kubelet.clear` state can be apply to all nodes to make sure kubelet is stop and all generated container is removed. e.g. To hard restart the cluster: `kubernetes` state can be apply to include this `kubelet.clear` state like this:
+4. (Optional) For easier debugging purpose: a `kuberenetes.kubelet.reset` state can be apply to all nodes to make sure kubelet is stop and all generated container is removed. e.g. To hard restart the cluster: `kubernetes` state can be apply to include this `kubelet.reset` state like this:
 
 ```
   salt minion* state.sls kubernetes pillar='{"kubernetes":{"reset_kubelet": true}}'

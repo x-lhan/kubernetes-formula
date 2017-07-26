@@ -5,7 +5,7 @@
 include:
   - .base
 {% if config.get("reset_kubelet", False) %}
-  - .kubelet.clear
+  - .kubelet.reset
 {% endif %}
 {%- if pillar.kubernetes.master is defined %}
   - .generate-cert
@@ -17,7 +17,7 @@ include:
 {% endif %}
   - .kube-apiserver
   - .kube-controller-manager
-  - .kube-scheduler 
+  - .kube-scheduler
   - .docker
   - .kubelet
   - .kube-proxy
@@ -27,6 +27,12 @@ include:
 {% endif %}
 {% if config.get('enable_rescheduler', '').lower() == 'true' %}
     - .rescheduler
+{% endif %}
+{% if config.get('network_provider', '').lower() == 'cni' and config.get('cni_provider', '').lower() == 'flannel' %}
+  - .flannel
+{% endif %}
+{% if config.get("reset_kubelet", False) %}
+  - .reset
 {% endif %}
 {%- endif %}
 
@@ -42,4 +48,5 @@ include:
   - .kubelet
   - .kube-proxy
 {%- endif %}
+
 {%- endif %}

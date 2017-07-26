@@ -87,7 +87,7 @@ spec:
           initialDelaySeconds: 3
           timeoutSeconds: 5
         args:
-        - --domain={{ config['dns_domain'] }}.
+        - --domain={{ config['dns_domain'] }}
         - --dns-port=10053
         - --v=2
         {{ config['federations_domain_map'] }}

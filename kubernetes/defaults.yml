@@ -16,6 +16,7 @@ kubernetes:
   admission_control: "NamespaceLifecycle,NamespaceExists,ServiceAccount,LimitRanger,ResourceQuota,SecurityContextDeny"
   kube_user: "system:anonymous"
   network_provider: "kubenet"
+  cni_provider: "flannel"
   allow_privileged: true
   log_level: "--v=2"
   kube_docker_registry: "gcr.io/google_containers"
