@@ -6,7 +6,7 @@ kubernetes:
   {% endif %}
   # (Optional) to enable flannel as network plugin
   network_provider: cni
-  flannel_bind_iface: eth1
+  bind_iface: eth1
   allocate_node_cidrs: true
   # Please reference default.yml file for more configurable pillar data
     

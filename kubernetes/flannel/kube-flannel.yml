@@ -1,5 +1,4 @@
 {% from "kubernetes/map.jinja" import config with context %}
-{% set ips = salt['mine.get']('kubernetes:master', 'network.internal_ip', 'pillar').values() -%} 
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -60,7 +59,7 @@ spec:
       containers:
       - name: kube-flannel
         image: {{ config.flannel_image }}:{{ config.flannel_docker_tag }}
-        command: [ "/opt/bin/flanneld", "--ip-masq", "--kube-subnet-mgr", "-iface", "{{ config.flannel_bind_iface }}" ]
+        command: [ "/opt/bin/flanneld", "-ip-masq", "-kube-subnet-mgr", "-iface", "{{ config.bind_iface }}" ]
         securityContext:
           privileged: true
         env:

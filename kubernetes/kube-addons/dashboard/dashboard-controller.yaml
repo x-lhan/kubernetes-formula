@@ -1,8 +1,19 @@
 {% from "kubernetes/map.jinja" import config with context %}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kube-dashboard
+  namespace: kube-system
+  labels:
+    kubernetes.io/cluster-service: "true"
+    addonmanager.kubernetes.io/mode: Reconcile
+
+----
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: kubernetes-dashboard
+  name: kube-dashboard
   namespace: kube-system
   labels:
     k8s-app: kubernetes-dashboard
@@ -38,6 +49,7 @@ spec:
             port: 9090
           initialDelaySeconds: 30
           timeoutSeconds: 30
+      serviceAccountName: kube-dashboard
       tolerations:
       - key: "CriticalAddonsOnly"
         operator: "Exists"

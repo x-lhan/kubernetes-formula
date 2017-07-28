@@ -1,5 +1,6 @@
 {% set version = "v1.6.0" %}
-{% set ips = salt['mine.get']('kubernetes:master', 'network.internal_ip', 'pillar').values() -%}
+
+{% set master_ips = salt['mine.get']('kubernetes:master', 'network.internal_ip', 'pillar').values() -%}
 kubernetes:
   version: {{ version }}
   hyperkube_image: gcr.io/google_containers/hyperkube
@@ -28,9 +29,14 @@ kubernetes:
   kube-proxy_docker_tag: {{ version }}
   service_cluster_ip_range: "10.254.0.0/16"
   cluster_cidr: "10.150.0.0/16"
-  master_extra_sans: "IP:10.254.0.1,DNS:kubernetes,DNS:kubernetes.default,DNS:kubernetes.default.svc,DNS:kubernetes.default.svc.cluster.local"
-  advertise_address: {{ ips[0] }}
-  flannel_bind_iface: eth0
+  {% set master_extra_sans = "IP:10.254.0.1,DNS:kubernetes,DNS:kubernetes.default,DNS:kubernetes.default.svc,DNS:kubernetes.default.svc.cluster.local" %}
+   
+
+  master_extra_sans: {{ master_extra_sans }}
+  advertise_address: {{ master_ips[0] }}
+  master_ips: {{master_ips}}
+
+  bind_iface: eth0
   flannel_backend_mode: vxlan
   admin:
     username: admin
@@ -45,13 +51,13 @@ kubernetes:
     monitoring: hnsj0XqABgrSww7Nqo7UVTSZLJUt2XRd
     scheduler: HY1UUxEPpmjW4a1dDLGIANYQp1nZkLDk
   
-  
   addons:
     logging: True
     monitoring: True
   
   # etcd
   keep_host_etcd: False
+  initial_etcd_cluster: {{ master_ips|join(',') }}
   # Addons
   # dns
   enable_cluster_dns: True

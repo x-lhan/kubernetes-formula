@@ -1,5 +1,8 @@
 {% from "kubernetes/map.jinja" import config with context %}
 
+
+{% set node_ip = "--node-ip=" + grains.get("ip_interfaces").get(config.bind_iface)[0] %}
+
 {% set daemon_args = "$DAEMON_ARGS" -%}
 {% if grains['os_family'] == 'RedHat' -%}
   {% set daemon_args = "" -%}
@@ -10,8 +13,7 @@
 {% elif grains.apiservers is defined -%} # TODO(remove after 0.16.0): Deprecated form
   {% set api_servers = "--api-servers=https://" + grains.apiservers -%}
 {% else -%}
-  {% set ips = salt['mine.get']('kubernetes:master', 'network.internal_ip', 'pillar').values() -%}
-  {% set api_servers = "--api-servers=https://" + ips[0] -%}
+  {% set api_servers = "--api-servers=https://" + config.advertise_address -%}
 {% endif -%}
 
 # TODO: remove nginx for other cloud providers.
@@ -195,4 +197,4 @@
 {% endif %}
 
 # test_args has to be kept at the end, so they'll overwrite any prior configuration
-DAEMON_ARGS="{{daemon_args}} {{api_servers_with_port}} {{debugging_handlers}} {{hostname_override}} {{cloud_provider}} {{cloud_config}} {{pod_manifest_path}} {{manifest_url}} --allow-privileged={{config['allow_privileged']}} {{log_level}} {{cluster_dns}} {{cluster_domain}} {{docker_root}} {{kubelet_root}}  {{non_masquerade_cidr}} {{cgroup_root}} {{system_container}} {{pod_cidr}} {{ master_kubelet_args }} {{cpu_cfs_quota}} {{network_plugin}} {{kubelet_port}} {{ hairpin_mode }} {{enable_custom_metrics}} {{runtime_container}} {{kubelet_container}} {{node_labels}} {{babysit_daemons}} {{eviction_hard}} {{kubelet_auth}} {{feature_gates}} {{test_args}}"
+DAEMON_ARGS="{{daemon_args}} {{node_ip}} {{api_servers_with_port}} {{debugging_handlers}} {{hostname_override}} {{cloud_provider}} {{cloud_config}} {{pod_manifest_path}} {{manifest_url}} --allow-privileged={{config['allow_privileged']}} {{log_level}} {{cluster_dns}} {{cluster_domain}} {{docker_root}} {{kubelet_root}}  {{non_masquerade_cidr}} {{cgroup_root}} {{system_container}} {{pod_cidr}} {{ master_kubelet_args }} {{cpu_cfs_quota}} {{network_plugin}} {{kubelet_port}} {{ hairpin_mode }} {{enable_custom_metrics}} {{runtime_container}} {{kubelet_container}} {{node_labels}} {{babysit_daemons}} {{eviction_hard}} {{kubelet_auth}} {{feature_gates}} {{test_args}}"

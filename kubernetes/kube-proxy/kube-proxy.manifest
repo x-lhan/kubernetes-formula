@@ -4,8 +4,7 @@
 {% if grains.api_servers is defined -%}
   {% set api_servers = "--master=https://" + grains.api_servers -%}
 {% else -%}
-  {% set ips = salt['mine.get']('kubernetes:master', 'network.internal_ip', 'pillar').values() -%}
-  {% set api_servers = "--master=https://" + ips[0] -%}
+  {% set api_servers = "--master=https://" + config.advertise_address -%}
 {% endif -%}
 {% if grains['cloud'] is defined and grains.cloud in [ 'aws', 'gce', 'vagrant', 'photon-controller', 'openstack', 'azure-legacy' ]  %}
   {% set api_servers_with_port = api_servers -%}

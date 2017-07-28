@@ -30,8 +30,11 @@ kube-cert:
   {% endif %}
 {% endif %}
 
-{% set cert_ip = salt['mine.get']('kubernetes:master', 'network.internal_ip', 'pillar').values()[0] %}
+{% set cert_ip = grains.get("ip_interfaces").get(config.bind_iface)[0] %}
 {% set master_extra_sans=config.get('master_extra_sans', 'DNS:kubernetes,DNS:kubernetes.default,DNS:kubernetes.default.svc,DNS:kubernetes.default.svc.cluster.local') %}
+
+
+{% set master_extra_sans = 'IP:'+config.master_ips|join(',IP:') ~ "," + master_extra_sans %}
 
 # If there is a config defined, override any defaults.
 {% if config['cert_ip'] is defined %}
