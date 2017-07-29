@@ -172,6 +172,18 @@ addon-dir-create:
     - file_mode: 644
 {% endif %}
 
+{% if config.get('network_provider', '').lower() == 'cni' and config.get('cni_provider', '').lower() == 'flannel' %}
+/etc/kubernetes/addons/flannel:
+  file.recurse:
+    - source: salt://kubernetes/kube-addons/flannel 
+    - template: jinja
+    - include_pat: E@^.+\.yaml$
+    - user: root
+    - group: root
+    - dir_mode: 755
+    - file_mode: 644
+{% endif %}
+
 /etc/kubernetes/manifests/kube-addon-manager.yaml:
   file.managed:
     - source: salt://kubernetes/kube-addons/kube-addon-manager.yaml

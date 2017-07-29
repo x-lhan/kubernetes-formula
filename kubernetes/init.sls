@@ -28,9 +28,6 @@ include:
 {% if config.get('enable_rescheduler', '').lower() == 'true' %}
     - .rescheduler
 {% endif %}
-{% if config.get('network_provider', '').lower() == 'cni' and config.get('cni_provider', '').lower() == 'flannel' %}
-  - .flannel
-{% endif %}
 {% if config.get("reset_kubelet", False) %}
   - .reset
 {% endif %}
