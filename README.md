@@ -31,9 +31,20 @@ Pool node:
 ## How to use?
 
 1. Create pillar data file based on `pillar.example` file and modify as needed. More configurable pillar data can be referenced from `default.yml`.
-2. Apply `kubernetes` state among cluster master and pool noeds.
-3. (Optional) To use flannel as network plugin, please modify/add pillar data as needed(`bind_iface: eth1`, `network_provider: cni`) and apply `kubernetes` and `kubernetes.flannel` state to the master node.
-4. (Optional) For easier debugging purpose: a `kuberenetes.kubelet.reset` state can be apply to all nodes to make sure kubelet is stop and all generated container is removed. e.g. To hard restart the cluster: `kubernetes` state can be apply to include this `kubelet.reset` state like this:
+2. (Optional) To use flannel as network plugin, please modify/add pillar data as needed(`bind_iface: eth1`, `network_provider: cni`, `allocate_node_cidrs: true`). 
+3. (Optional, only required for multi-master nodes setup) Generate TLS certificates and share among master nodes:
+
+  a. Scope master nodes by setting pillar data `kubernetes:master` to `True`.
+  
+  b. Apply `kuberentes.generate-cert` state to one master node.
+  
+  c. Copy all newly generated certs under `/srv/kubernets/`(ca.crt, server.key, server.cert, kubecfg.key, kubecfg.crt) into pillar `kubernetes:certs` with filename as key and file content as value.
+  
+3. Apply `kubernetes` state among cluster master and pool nodes.
+
+## Notes
+
+* For easier debugging purpose: a `kuberenetes.kubelet.reset` state can be apply to all nodes to make sure kubelet is stop and all generated container is removed. e.g. To hard restart the cluster: `kubernetes` state can be apply to include this `kubelet.reset` state like this:
 
 ```
   salt minion* state.sls kubernetes pillar='{"kubernetes":{"reset_kubelet": true}}'
