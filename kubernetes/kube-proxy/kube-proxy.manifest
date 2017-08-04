@@ -6,11 +6,7 @@
 {% else -%}
   {% set api_servers = "--master=https://" + config.advertise_address -%}
 {% endif -%}
-{% if grains['cloud'] is defined and grains.cloud in [ 'aws', 'gce', 'vagrant', 'photon-controller', 'openstack', 'azure-legacy' ]  %}
-  {% set api_servers_with_port = api_servers -%}
-{% else -%}
-  {% set api_servers_with_port = api_servers + ":6443" -%}
-{% endif -%}
+
 {% set test_args = "" -%}
 {% if config['kubeproxy_test_args'] is defined -%}
   {% set test_args=config['kubeproxy_test_args'] %}
@@ -60,7 +56,7 @@ spec:
     command:
     - /bin/sh
     - -c
-    - echo -998 > /proc/$$$/oom_score_adj && kube-proxy {{api_servers_with_port}} {{kubeconfig}} {{cluster_cidr}} --resource-container="" {{params}} 1>>/var/log/kube-proxy.log 2>&1
+    - echo -998 > /proc/$$$/oom_score_adj && kube-proxy {{api_servers}} {{kubeconfig}} {{cluster_cidr}} --resource-container="" {{params}} 1>>/var/log/kube-proxy.log 2>&1
     securityContext:
       privileged: true
     volumeMounts:

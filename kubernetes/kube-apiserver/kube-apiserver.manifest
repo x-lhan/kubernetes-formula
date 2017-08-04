@@ -15,6 +15,11 @@
 {% set srv_kube_path = "/srv/kubernetes" -%}
 {% set srv_sshproxy_path = "/srv/sshproxy" -%}
 
+{% set apiserver_count = 1%}
+{% if config.master_ips is defined and config.master_ips|length > 1%}
+{% set apiserver_count = config.master_ips|length %}
+{% endif %}
+
 {% if grains.cloud is defined -%}
   {% if grains.cloud not in ['vagrant', 'photon-controller', 'azure-legacy'] -%}
     {% set cloud_provider = "--cloud-provider=" + grains.cloud -%}
@@ -35,11 +40,9 @@
     {% set cloud_config_volume = "{\"name\": \"instanceid\",\"hostPath\": {\"path\": \"/var/lib/cloud/data/instance-id\"}}," -%}
   {% endif -%}
 {% endif -%}
+{% set node_ip = grains.get("ip_interfaces").get(config.bind_iface)[0] %}
+{% set advertise_address = "--advertise-address=" + node_ip -%}
 
-{% set advertise_address = "" -%}
-{% if config.advertise_address is defined -%}
-  {% set advertise_address = "--advertise-address=" + config.advertise_address -%}
-{% endif -%}
 
 {% set proxy_ssh_options = "" -%}
 {% if grains.proxy_ssh_user is defined -%}
@@ -216,7 +219,7 @@
     "command": [
                  "/bin/sh",
                  "-c",
-                 "/usr/local/bin/kube-apiserver {{params}} --allow-privileged={{config['allow_privileged']}} 1>>/var/log/kube-apiserver.log 2>&1"
+                 "/usr/local/bin/kube-apiserver {{params}} --apiserver-count={{ apiserver_count }} --allow-privileged={{config['allow_privileged']}} 1>>/var/log/kube-apiserver.log 2>&1"
                ],
     {{container_env}}
     "livenessProbe": {

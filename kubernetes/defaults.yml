@@ -33,7 +33,7 @@ kubernetes:
    
 
   master_extra_sans: {{ master_extra_sans }}
-  advertise_address: {{ master_ips[0] }}
+  advertise_address: {{ master_ips[0] }}:6443
   master_ips: {{master_ips}}
 
   bind_iface: eth0
