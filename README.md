@@ -34,13 +34,17 @@ Pool node:
 2. (Optional) To use flannel as network plugin, please modify/add pillar data as needed(`bind_iface: eth1`, `network_provider: cni`, `allocate_node_cidrs: true`). 
 3. (Optional, only required for multi-master nodes setup) Generate TLS certificates and share among master nodes:
 
-  a. Scope master nodes by setting pillar data `kubernetes:master` to `True`.
+    a. Scope master nodes by setting pillar data `kubernetes:master` to `True`.
   
-  b. Apply `kuberentes.generate-cert` state to one master node.
+    b. Apply `kuberentes.generate-cert` state to one master node.
   
-  c. Copy all newly generated certs under `/srv/kubernets/`(ca.crt, server.key, server.cert, kubecfg.key, kubecfg.crt) into pillar `kubernetes:certs` with filename as key and file content as value.
+    c. Copy all newly generated certs under `/srv/kubernets/`(ca.crt, server.key, server.cert, kubecfg.key, kubecfg.crt) into pillar `kubernetes:certs` with filename as key and file content as value.
   
-3. Apply `kubernetes` state among cluster master and pool nodes.
+4. Apply `kubernetes` state among cluster master and pool nodes.
+
+### Note for setting up HA etcd/apiserver
+* HA etcd require at least 3 node to be fault-tolerant, with the current setup meaning at least 3 master nodes
+* HA apiserver require to put all apiserver endpoint(`https://MASTER_NODE_IP:6443`) behind one or multiple load balancer. Then add the load balancer ip and port to pillar data `kubernetes:api_server:ip` and `kubernetes:api_server:port` before step#3.
 
 ## Notes
 

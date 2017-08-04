@@ -1,3 +1,5 @@
+{% from "kubernetes/map.jinja" import config with context %}
+
 pkg-core:
   pkg.installed:
     - names:
@@ -37,4 +39,23 @@ net.ipv4.neigh.default.gc_thresh1:
   sysctl.present:
     - value: 0
 {% endif %}
+
+ensure-api_server-fqdn-exist:
+  host.present:
+    - ip: {{ config.api_server.ip }}
+    - names:
+      - {{ config.api_server.fqdn }}
+
+{% if pillar.kubernetes.master is defined -%}
+{% set pool_ips = salt['saltutil.runner']("mine.get", tgt="kubernetes:pool", fun='network.internal_ip', tgt_type='pillar') %}
+{% for server, addrs in pool_ips.items() %}
+ensure-pool-node-{{server}}-fqdn-exist:
+  host.present:
+    - ip: {{ addrs }}
+    - names:
+      - {{ server }}
+{% endfor %}
+{% endif %}
+
+
 

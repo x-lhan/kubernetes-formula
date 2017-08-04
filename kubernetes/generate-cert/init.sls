@@ -31,7 +31,7 @@ kube-cert:
 {% endif %}
 
 {% set cert_ip = grains.get("ip_interfaces").get(config.bind_iface)[0] %}
-{% set master_extra_sans=config.get('master_extra_sans', 'DNS:kubernetes,DNS:kubernetes.default,DNS:kubernetes.default.svc,DNS:kubernetes.default.svc.cluster.local') %}
+{% set master_extra_sans=config.get('master_extra_sans') + ",DNS:" + config.api_server.fqdn %}
 
 
 {% set master_extra_sans = 'IP:'+config.master_ips|join(',IP:') ~ "," + master_extra_sans %}

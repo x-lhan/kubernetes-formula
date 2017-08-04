@@ -29,11 +29,11 @@ kubernetes:
   kube-proxy_docker_tag: {{ version }}
   service_cluster_ip_range: "10.254.0.0/16"
   cluster_cidr: "10.150.0.0/16"
-  {% set master_extra_sans = "IP:10.254.0.1,DNS:kubernetes,DNS:kubernetes.default,DNS:kubernetes.default.svc,DNS:kubernetes.default.svc.cluster.local" %}
-   
-
-  master_extra_sans: {{ master_extra_sans }}
-  advertise_address: {{ master_ips[0] }}:6443
+  api_server:
+    ip: {{ master_ips[0] }}
+    port: 6443
+    fqdn: kubernetes.api
+  master_extra_sans: "IP:10.254.0.1,DNS:kubernetes,DNS:kubernetes.default,DNS:kubernetes.default.svc,DNS:kubernetes.default.svc.cluster.local"
   master_ips: {{master_ips}}
 
   bind_iface: eth0

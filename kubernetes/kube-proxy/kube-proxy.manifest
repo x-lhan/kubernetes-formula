@@ -4,7 +4,7 @@
 {% if grains.api_servers is defined -%}
   {% set api_servers = "--master=https://" + grains.api_servers -%}
 {% else -%}
-  {% set api_servers = "--master=https://" + config.advertise_address -%}
+  {% set api_servers = "--master=https://" + config.api_server.fqdn + ":" ~ config.api_server.port -%}
 {% endif -%}
 
 {% set test_args = "" -%}

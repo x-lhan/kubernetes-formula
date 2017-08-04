@@ -13,7 +13,7 @@
 {% elif grains.apiservers is defined -%} # TODO(remove after 0.16.0): Deprecated form
   {% set api_servers = "--api-servers=https://" + grains.apiservers -%}
 {% else -%}
-  {% set api_servers = "--api-servers=https://" + config.advertise_address -%}
+  {% set api_servers = "--api-servers=https://" + config.api_server.fqdn + ":" ~ config.api_server.port -%}
 {% endif -%}
 
 {% set master_kubelet_args = "" %}
@@ -25,7 +25,7 @@
 
     # Unless given a specific directive, disable registration for the kubelet
     # running on the master.
-    {% if grains.kubelet_api_servers is defined or config.advertise_address is defined -%}
+    {% if grains.kubelet_api_servers is defined or config.api_server.ip is defined -%}
       {% set master_kubelet_args = master_kubelet_args + "--register-schedulable=false" -%}
     {% endif -%}
 
