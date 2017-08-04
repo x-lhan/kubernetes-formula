@@ -26,7 +26,7 @@ docker:
 # Kubelet or our health checker will start it.  But we use service.enabled,
 # so we still have a `service: docker` node for our DAG.
 {% if grains.cloud is defined and grains.cloud == 'aws' %}
-  service.enabled:
+  service.enabled
 {% else %}
   service.running:
     - enable: True
