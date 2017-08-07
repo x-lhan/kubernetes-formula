@@ -1,21 +1,7 @@
 {% from "kubernetes/map.jinja" import config with context %}
 
-
 bridge-utils:
   pkg.installed
-  
-
-cbr0:
-  network.managed:
-    - enabled: True
-    - type: bridge
-    - proto: dhcp
-    - ports: none
-    - bridge: cbr0
-    - delay: 0
-    - bypassfirewall: True
-    - require_in:
-      - service: docker
 
 docker:
 # Starting Docker is racy on aws for some reason.  To be honest, since Monit
