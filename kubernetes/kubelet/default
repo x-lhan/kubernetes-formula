@@ -117,7 +117,7 @@
 {% from "kubernetes/map.jinja" import config with context %}
 
 {% set feature_gates = "" -%}
-{% if grains['feature_gates'] is defined -%}
+{% if config['feature_gates'] is defined -%}
   {% set feature_gates = "--feature-gates=" + grains['feature_gates'] -%}
 {% endif %}
 
