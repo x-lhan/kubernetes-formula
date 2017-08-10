@@ -33,6 +33,7 @@ pkg-core:
 # (we also have to give it a different id from the same fix elsewhere)
 99-salt-conf-with-a-different-id:
   file.touch:
+    - unless: test -f /etc/sysctl.d/99-salt.conf
     - name: /etc/sysctl.d/99-salt.conf
 
 net.ipv4.neigh.default.gc_thresh1:
@@ -47,8 +48,7 @@ ensure-api_server-fqdn-exist:
       - {{ config.api_server.fqdn }}
 
 {% if pillar.kubernetes.master is defined -%}
-{% set pool_ips = salt['saltutil.runner']("mine.get", tgt="kubernetes:pool", fun='network.internal_ip', tgt_type='pillar') %}
-{% for server, addrs in pool_ips.items() %}
+{% for server, addrs in config.pool_nodes.items() %}
 ensure-pool-node-{{server}}-fqdn-exist:
   host.present:
     - ip: {{ addrs }}

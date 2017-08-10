@@ -19,22 +19,34 @@
 {% set master_kubelet_args = "" %}
 
 {% set debugging_handlers = "--enable-debugging-handlers=true" -%}
+{% set register_with_taints = "" %}
 
 {% if pillar.kubernetes.master is defined -%}
-  {% if grains['cloud'] is defined and grains.cloud in ['aws', 'gce', 'vagrant', 'photon-controller', 'openstack', 'azure-legacy'] -%}
+
 
     # Unless given a specific directive, disable registration for the kubelet
     # running on the master.
-    {% if grains.kubelet_api_servers is defined or config.api_server.ip is defined -%}
-      {% set master_kubelet_args = master_kubelet_args + "--register-schedulable=false" -%}
+    {% if grains.kubelet_api_servers is defined or config.api_server.ip is defined and not config.api_server.register_schedulable -%}
+      {% set register_with_taints = "node.alpha.kubernetes.io/ismaster=:NoSchedule" -%}
     {% endif -%}
 
     # Disable the debugging handlers (/run and /exec) to prevent arbitrary
     # code execution on the master.
     # TODO(roberthbailey): Relax this constraint once the master is self-hosted.
     {% set debugging_handlers = "--enable-debugging-handlers=false" -%}
-  {% endif -%}
 {% endif -%}
+
+{% if config.register_with_taints is defined %}
+{% if register_with_taints|length > 0 %}
+  {% set register_with_taints = register_with_taints + "," + config.register_with_taints|join(",") -%}
+{% else %}
+  {% set register_with_taints = config.register_with_taints|join(",") -%}
+{% endif %}
+{% endif %}
+
+{% if register_with_taints|length > 0 %}
+  {% set register_with_taints = "--register-with-taints=" + register_with_taints %}
+{% endif %}
 
 {% set cloud_provider = "" -%}
 {% if grains.cloud is defined and grains.cloud not in ['vagrant', 'photon-controller', 'azure-legacy'] -%}
@@ -54,9 +66,10 @@
   {% set manifest_url = "--manifest-url=" + config['manifest_url'] + " --manifest-url-header=" + config['manifest_url_header'] -%}
 {% endif -%}
 
-{% set hostname_override = "" -%}
-{% if grains.hostname_override is defined -%}
-  {% set hostname_override = " --hostname-override=" + grains.hostname_override -%}
+{% set hostname_override = config.get("hostname_override", "") %}
+
+{% if hostname_override|length > 0 -%}
+  {% set hostname_override = " --hostname-override=" + hostname_override -%}
 {% endif -%}
 
 {% set cluster_dns = "" %}
@@ -187,4 +200,4 @@
 {% endif %}
 
 # test_args has to be kept at the end, so they'll overwrite any prior configuration
-DAEMON_ARGS="{{daemon_args}} {{node_ip}} {{api_servers}} {{debugging_handlers}} {{hostname_override}} {{cloud_provider}} {{cloud_config}} {{pod_manifest_path}} {{manifest_url}} --allow-privileged={{config['allow_privileged']}} {{log_level}} {{cluster_dns}} {{cluster_domain}} {{docker_root}} {{kubelet_root}}  {{non_masquerade_cidr}} {{cgroup_root}} {{system_container}} {{pod_cidr}} {{ master_kubelet_args }} {{cpu_cfs_quota}} {{network_plugin}} {{kubelet_port}} {{ hairpin_mode }} {{enable_custom_metrics}} {{runtime_container}} {{kubelet_container}} {{node_labels}} {{babysit_daemons}} {{eviction_hard}} {{kubelet_auth}} {{feature_gates}} {{test_args}}"
+DAEMON_ARGS="{{daemon_args}} {{node_ip}} {{api_servers}} {{debugging_handlers}} {{hostname_override}} {{cloud_provider}} {{cloud_config}} {{pod_manifest_path}} {{manifest_url}} --allow-privileged={{config['allow_privileged']}} {{register_with_taints}} {{log_level}} {{cluster_dns}} {{cluster_domain}} {{docker_root}} {{kubelet_root}}  {{non_masquerade_cidr}} {{cgroup_root}} {{system_container}} {{pod_cidr}} {{ master_kubelet_args }} {{cpu_cfs_quota}} {{network_plugin}} {{kubelet_port}} {{ hairpin_mode }} {{enable_custom_metrics}} {{runtime_container}} {{kubelet_container}} {{node_labels}} {{babysit_daemons}} {{eviction_hard}} {{kubelet_auth}} {{feature_gates}} {{test_args}}"

@@ -1,6 +1,8 @@
 {% set version = "v1.6.0" %}
 
 {% set master_ips = salt['mine.get']('kubernetes:master', 'network.internal_ip', 'pillar').values() -%}
+{% set pool_nodes = salt['mine.get']('kubernetes:pool', 'network.internal_ip', 'pillar') -%}
+
 kubernetes:
   version: {{ version }}
   hyperkube_image: gcr.io/google_containers/hyperkube
@@ -29,13 +31,15 @@ kubernetes:
   kube-proxy_docker_tag: {{ version }}
   service_cluster_ip_range: "10.254.0.0/16"
   cluster_cidr: "10.150.0.0/16"
+  hostname_override: {{ grains['id'] }}
   api_server:
     ip: {{ master_ips[0] }}
     port: 6443
     fqdn: kubernetes.api
+    register_schedulable: false
   master_extra_sans: "IP:10.254.0.1,DNS:kubernetes,DNS:kubernetes.default,DNS:kubernetes.default.svc,DNS:kubernetes.default.svc.cluster.local"
   master_ips: {{master_ips}}
-
+  pool_nodes: {{pool_nodes}}
   bind_iface: eth0
   flannel_backend_mode: vxlan
   admin:
