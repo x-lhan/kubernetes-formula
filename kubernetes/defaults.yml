@@ -1,4 +1,4 @@
-{% set version = "v1.6.0" %}
+{% set version = "v1.7.0" %}
 
 {% set master_ips = salt['mine.get']('kubernetes:master', 'network.internal_ip', 'pillar').values() -%}
 {% set pool_nodes = salt['mine.get']('kubernetes:pool', 'network.internal_ip', 'pillar') -%}
@@ -29,6 +29,7 @@ kubernetes:
   kube-controller-manager_docker_tag: {{ version }}
   kube-scheduler_docker_tag: {{ version }}
   kube-proxy_docker_tag: {{ version }}
+  
   service_cluster_ip_range: "10.254.0.0/16"
   cluster_cidr: "10.150.0.0/16"
   hostname_override: {{ grains['id'] }}

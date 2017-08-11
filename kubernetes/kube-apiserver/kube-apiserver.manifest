@@ -179,7 +179,7 @@
   {% set audit_log = "--audit-log-path=/var/log/kube-apiserver-audit.log --audit-log-maxage=0 --audit-log-maxbackup=0 --audit-log-maxsize=2000000000" -%}
 {% endif -%}
 
-{% set secure_port = config.api_server.port %}
+{% set secure_port = 6443 %}
 
 {% set params = address + " " + storage_backend + " " + storage_media_type + " " + etcd_servers + " " + etcd_servers_overrides + " " + cloud_provider + " " + cloud_config + " " + runtime_config + " " + feature_gates + " " + admission_control + " " + max_requests_inflight + " " + target_ram_mb + " " + service_cluster_ip_range + " " + client_ca_file + basic_auth_file + " " + min_request_timeout + " " + enable_garbage_collector + " " + etcd_quorum_read + " " + audit_log -%}
 {% set params = params + " " + cert_file + " " + key_file + " " + kubelet_cert_file + " " + kubelet_key_file + " " + kubelet_preferred_address_types + " --secure-port=" ~ secure_port + token_auth_file + " " + bind_address + " " + log_level + " " + advertise_address  + " " + proxy_ssh_options + authz_mode + abac_policy_file + webhook_authentication_config + webhook_authorization_config + image_review_config -%}
