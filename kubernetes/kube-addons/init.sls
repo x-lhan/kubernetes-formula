@@ -173,15 +173,30 @@ addon-dir-create:
 {% endif %}
 
 {% if config.get('network_provider', '').lower() == 'cni' and config.get('cni_provider', '').lower() == 'flannel' %}
-/etc/kubernetes/addons/flannel:
-  file.recurse:
-    - source: salt://kubernetes/kube-addons/flannel 
+
+
+/etc/kubernetes/addons/flannel/kube-flannel.yaml:
+  file.managed:
+    - source: salt://kubernetes/kube-addons/flannel/kube-flannel.yaml 
     - template: jinja
-    - include_pat: E@^.+\.yaml$
     - user: root
     - group: root
     - dir_mode: 755
     - file_mode: 644
+    - makedirs: True
+    
+{% if config.flannel.enable_calico %}
+/etc/kubernetes/addons/flannel/kube-calico.yaml:
+  file.managed:
+    - source: salt://kubernetes/kube-addons/flannel/kube-calico.yaml 
+    - template: jinja
+    - user: root
+    - group: root
+    - dir_mode: 755
+    - file_mode: 644
+    - makedirs: True
+{% endif %}
+
 {% endif %}
 
 /etc/kubernetes/manifests/kube-addon-manager.yaml:

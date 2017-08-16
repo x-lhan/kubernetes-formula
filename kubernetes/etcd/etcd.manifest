@@ -7,7 +7,7 @@
   {% set etcd_creds = '--peer-trusted-ca-file /srv/kubernetes/etcd-ca.crt --peer-cert-file /srv/kubernetes/etcd-peer.crt --peer-key-file /srv/kubernetes/etcd-peer.key -peer-client-cert-auth' -%}
 {% endif -%}
 {% set host_ip = grains.get("ip_interfaces").get(config.bind_iface)[0] %}
-{% set cluster_state = (config.get('initial_etcd_cluster_state') or 'new') -%}
+{% set cluster_state = (grains.get('initial_etcd_cluster_state') or 'new') -%}
 {% set etcd_cluster = '' -%}
 {# We use vars dictionary to pass variables set inside the for loop, because jinja defines new variables inside the for loop that hide variables from the outside. #}
 {% set vars = {'etcd_cluster': ''} -%}

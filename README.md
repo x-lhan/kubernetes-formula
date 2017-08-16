@@ -53,7 +53,7 @@ Pool node:
 * Add steps:
 
     1. make sure pillar data `kubernetes:master` is true for the host need to add
-    2. make sure pillar data `kubernetes:initial_etcd_cluster_state` is "existing"
+    2. make sure grain data `initial_etcd_cluster_state` is "existing" for the host need to add
     3. run `salt 'ALL_NODE_*' saltutil.refresh_pillar` to update pillar data
     4. run `salt 'TARGET_MASTER_NODE' state.sls kubernetes` to apply kubernetes state
     5. confirm the ip address of the host need to add with command like `salt TARGET_MASTER_NODE grains.get ip_interfaces:eth0`

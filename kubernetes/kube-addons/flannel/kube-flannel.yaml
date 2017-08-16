@@ -33,7 +33,7 @@ data:
     {
       "Network": "{{ config.cluster_cidr }}",
       "Backend": {
-        "Type": "{{ config.flannel_backend_mode }}"
+        "Type": "{{ config.flannel.backend_mode }}"
       }
     }
 ---

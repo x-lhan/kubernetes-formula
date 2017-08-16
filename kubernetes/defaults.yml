@@ -45,7 +45,9 @@ kubernetes:
   master_ips: {{master_ips}}
   pool_nodes: {{pool_nodes}}
   bind_iface: eth0
-  flannel_backend_mode: vxlan
+  flannel:
+    enable_calico: true
+    backend_mode: vxlan
   admin:
     username: admin
     password: admin
