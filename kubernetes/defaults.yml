@@ -1,6 +1,8 @@
 {% set version = "v1.7.0" %}
 
-{% set master_ips = salt['mine.get']('kubernetes:master', 'network.internal_ip', 'pillar').values() -%}
+{% set master_nodes = salt['mine.get']('kubernetes:master', 'network.internal_ip', 'pillar') -%}
+{% set master_ips = master_nodes.values() -%}
+
 {% set pool_nodes = salt['mine.get']('kubernetes:pool', 'network.internal_ip', 'pillar') -%}
 
 kubernetes:
@@ -32,13 +34,14 @@ kubernetes:
   
   service_cluster_ip_range: "10.254.0.0/16"
   cluster_cidr: "10.150.0.0/16"
-  hostname_override: {{ grains['id'] }}
+  minion_id_as_hostname: false
   api_server:
     ip: {{ master_ips[0] }}
     port: 6443
     fqdn: kubernetes.api
     register_schedulable: false
   master_extra_sans: "IP:10.254.0.1,DNS:kubernetes,DNS:kubernetes.default,DNS:kubernetes.default.svc,DNS:kubernetes.default.svc.cluster.local"
+  master_nodes: {{master_nodes}}
   master_ips: {{master_ips}}
   pool_nodes: {{pool_nodes}}
   bind_iface: eth0
@@ -62,7 +65,6 @@ kubernetes:
   
   # etcd
   keep_host_etcd: False
-  initial_etcd_cluster: {{ master_ips|join(',') }}
   # Addons
   # dns
   enable_cluster_dns: True

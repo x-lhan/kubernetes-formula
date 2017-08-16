@@ -1,6 +1,6 @@
 /etc/kubernetes/manifests/rescheduler.manifest:
   file.managed:
-    - source: salt://rescheduler/rescheduler.manifest
+    - source: salt://kubernetes/rescheduler/rescheduler.manifest
     - template: jinja
     - user: root
     - group: root

@@ -8,11 +8,10 @@
 {% endif -%}
 {% set host_ip = grains.get("ip_interfaces").get(config.bind_iface)[0] %}
 {% set cluster_state = (config.get('initial_etcd_cluster_state') or 'new') -%}
-{% set etcd_cluster_array = (config.get('initial_etcd_cluster')).split(',') -%}
 {% set etcd_cluster = '' -%}
 {# We use vars dictionary to pass variables set inside the for loop, because jinja defines new variables inside the for loop that hide variables from the outside. #}
 {% set vars = {'etcd_cluster': ''} -%}
-{% for host in etcd_cluster_array -%}
+{% for host in config.master_ips -%}
   {% if etcd_cluster != '' -%}
     {% set etcd_cluster = etcd_cluster ~ ',' -%}
   {% endif -%}
@@ -25,12 +24,12 @@
   {% set quota_bytes = '--quota-backend-bytes=4294967296' -%}
 {% endif -%}
 {% set srv_kube_path = "/srv/kubernetes" -%}
-
+{% set cluster_name = "etcd-server" + suffix %}
 {
 "apiVersion": "v1",
 "kind": "Pod",
 "metadata": {
-  "name":"etcd-server{{ suffix }}",
+  "name":"{{ cluster_name }}",
   "namespace": "kube-system"
 },
 "spec":{
@@ -47,7 +46,7 @@
     "command": [
               "/bin/sh",
               "-c",
-              "if [ -e /usr/local/bin/migrate-if-needed.sh ]; then /usr/local/bin/migrate-if-needed.sh 1>>/var/log/etcd{{ suffix }}.log 2>&1; fi; /usr/local/bin/etcd --name etcd-{{ host_ip|replace('.','-') }} --listen-peer-urls {{ etcd_protocol }}://{{ host_ip }}:{{ server_port }} --initial-advertise-peer-urls {{ etcd_protocol }}://{{ host_ip }}:{{ server_port }} --advertise-client-urls http://127.0.0.1:{{ port }} --listen-client-urls http://127.0.0.1:{{ port }} {{ quota_bytes }} --data-dir /var/etcd/data{{ suffix }} --initial-cluster-state {{ cluster_state }} --initial-cluster {{ etcd_cluster }} {{ etcd_creds }} 1>>/var/log/etcd{{ suffix }}.log 2>&1"
+              "if [ -e /usr/local/bin/migrate-if-needed.sh ]; then /usr/local/bin/migrate-if-needed.sh 1>>/var/log/etcd{{ suffix }}.log 2>&1; fi; /usr/local/bin/etcd --name etcd-{{ host_ip|replace('.','-') }} --listen-peer-urls {{ etcd_protocol }}://{{ host_ip }}:{{ server_port }} --initial-advertise-peer-urls {{ etcd_protocol }}://{{ host_ip }}:{{ server_port }} --advertise-client-urls http://127.0.0.1:{{ port }} --listen-client-urls http://127.0.0.1:{{ port }} {{ quota_bytes }} --data-dir /var/etcd/data{{ suffix }} --initial-cluster-token {{cluster_name}} --initial-cluster-state {{ cluster_state }} --initial-cluster {{ etcd_cluster }} {{ etcd_creds }} 1>>/var/log/etcd{{ suffix }}.log 2>&1"
             ],
     "env": [
       { "name": "TARGET_STORAGE",

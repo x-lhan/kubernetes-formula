@@ -68,6 +68,11 @@
 
 {% set hostname_override = config.get("hostname_override", "") %}
 
+
+{% if hostname_override|length == 0 and config.get("minion_id_as_hostname", false) -%}
+{% set hostname_override = grains['id']  %}
+{% endif -%}
+
 {% if hostname_override|length > 0 -%}
   {% set hostname_override = " --hostname-override=" + hostname_override -%}
 {% endif -%}
