@@ -31,7 +31,7 @@ Pool node:
 ## How to use?
 
 1. Create pillar data file based on `pillar.example` file and modify as needed. More configurable pillar data can be referenced from `default.yml`.
-2. (Optional) To use flannel as network plugin, please modify/add pillar data as needed(`bind_iface: eth1`, `network_provider: cni`, `allocate_node_cidrs: true`). 
+2. (Optional) To use flannel+calico as network plugin, please modify/add pillar data as needed(`bind_iface: eth1`, `network_provider: cni`, `allocate_node_cidrs: true`). 
 3. (Optional, only required for multi-master nodes setup) Generate TLS certificates and share among master nodes:
 
     a. Scope master nodes by setting pillar data `kubernetes:master` to `True`.
