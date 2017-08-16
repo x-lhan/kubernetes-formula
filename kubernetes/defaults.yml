@@ -68,11 +68,18 @@ kubernetes:
   # etcd
   keep_host_etcd: False
   # Addons
+  # dashboard
+  enable_cluster_ui: True
+  # rescheduler
+  enable_rescheduler: True
+  # cluster_autoscaler
+  cluster_autoscaler: 
+    enabled: False
+    params: []
   # dns
   enable_cluster_dns: True
   dns_server: 10.254.254.254
   dns_domain: cluster.local
   federations_domain_map: ""
-  # dashboard
-  enable_cluster_ui: True
+
       

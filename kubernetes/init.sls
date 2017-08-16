@@ -22,11 +22,11 @@ include:
   - .kubelet
   - .kube-proxy
   - .kube-addons
-{% if config.get('enable_cluster_autoscaler', '').lower() == 'true' %}
-    - .cluster-autoscaler
+{% if config.cluster_autoscaler.enabled %}
+  - .cluster-autoscaler
 {% endif %}
-{% if config.get('enable_rescheduler', '').lower() == 'true' %}
-    - .rescheduler
+{% if config.enable_rescheduler %}
+  - .rescheduler
 {% endif %}
 {% if config.get("reset_kubelet", False) %}
   - .reset

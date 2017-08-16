@@ -7,7 +7,7 @@
 
 /etc/kubernetes/manifests/cluster-autoscaler.manifest:
   file.managed:
-    - source: salt://cluster-autoscaler/cluster-autoscaler.manifest
+    - source: salt://kubernetes/cluster-autoscaler/cluster-autoscaler.manifest
     - template: jinja
     - user: root
     - group: root

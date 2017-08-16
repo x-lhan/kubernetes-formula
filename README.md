@@ -100,6 +100,11 @@ Pool node:
   4. run `salt 'TARGET_NODE' state.sls kubernetes` to apply kubernetes state again
   5. mark node as working status with command `hyperkube kubectl taint node TARGET_NODE evict:NoExecute-` 
 
+### Note for cluster auto-scaler
+
+  * cluster auto-scaler feature rely on cloud provider, for AWS please reference [here](https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/aws/README.md)
+  * To enable auto-scaler make sure pillar data `kubernetes:cluster_autoscaler:enabled` is true(Default is false) and set `kubernetes:cluster_autoscaler:params` as needed. 
+
 ## Notes
 
 * For easier debugging purpose: a `kuberenetes.kubelet.reset` state can be apply to all nodes to make sure kubelet is stop and all generated container is removed. e.g. To hard restart the cluster: `kubernetes` state can be apply to include this `kubelet.reset` state like this:
