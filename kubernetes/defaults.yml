@@ -18,12 +18,12 @@ kubernetes:
   {% else %}
   is_systemd: False
   {% endif %}
-  admission_control: "NamespaceLifecycle,NamespaceExists,ServiceAccount,LimitRanger,ResourceQuota,SecurityContextDeny"
+  admission_control: "NamespaceLifecycle,LimitRanger,ServiceAccount,PersistentVolumeLabel,DefaultStorageClass,ResourceQuota,DefaultTolerationSeconds"
   kube_user: "system:anonymous"
   network_provider: "kubenet"
   cni_provider: "flannel"
   allow_privileged: true
-  log_level: "--v=2"
+  log_level: "--v=0"
   kube_docker_registry: "gcr.io/google_containers"
   apiserver_docker_tag: {{ version }}
   flannel_docker_tag: v0.7.1-amd64
@@ -64,7 +64,9 @@ kubernetes:
   addons:
     logging: True
     monitoring: True
-  
+  # storage class
+  enable_default_storage_class: False
+  default_storage_class_zones: ""
   # etcd
   keep_host_etcd: False
   # Addons

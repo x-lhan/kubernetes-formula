@@ -67,19 +67,19 @@ kubernetes-cert:
     - require:
       - pkg: openssl
 {% endif %}
-sys-install-kubernates-ca:
+sys-install-kubernetes-ca:
   file.managed:
     - unless: test -f /usr/local/share/ca-certificates/kubernetes-ca.crt
     - source: /srv/kubernetes/ca.crt
-    - name: /usr/local/share/ca-certificates/kubernates-ca.crt
+    - name: /usr/local/share/ca-certificates/kubernetes-ca.crt
     - user: root
     - group: root
     - mode: "0644"
   cmd.run:
     - name: update-ca-certificates
     - unless:
-      - "cat /etc/ssl/certs/ca-certificates.crt | tr -d \" \\t\\n\\r\" | grep -q -- \"`cat /usr/local/share/ca-certificates/kubernates-ca.crt`\""
+      - "cat /etc/ssl/certs/ca-certificates.crt | tr -d \" \\t\\n\\r\" | grep -q -- \"`cat /usr/local/share/ca-certificates/kubernetes-ca.crt`\""
     - require:
-      - file: sys-install-kubernates-ca
+      - file: sys-install-kubernetes-ca
 
 
