@@ -15,46 +15,6 @@
     - group: root
     - mode: 644
 
-/tmp/hyperkube:
-  file.directory:
-    - user: root
-    - group: root
-
-/usr/bin/nsenter:
-  cmd.run:
-    - unless: test -f /usr/bin/nsenter
-    - name: docker run --rm -v /tmp/hyperkube:/target jpetazzo/nsenter
-    - require:
-      - file: /tmp/hyperkube
-  file.managed:
-    - unless: test -f /usr/bin/nsenter
-    - source: /tmp/hyperkube/nsenter
-    - mode: 755
-    - makedirs: true
-    - user: root
-    - group: root
-    - require:
-      - cmd: /usr/bin/nsenter
-
-/usr/local/bin/hyperkube:
-  cmd.run:
-    - unless: test -f /usr/local/bin/hyperkube
-    - name: docker run --rm -v /tmp/hyperkube:/tmp/hyperkube --entrypoint cp {{ config.hyperkube_image }}:{{ config.version }} -vr /hyperkube /tmp/hyperkube
-    - require:
-      - file: /tmp/hyperkube
-    {%- if grains.get('noservices') %}
-    - onlyif: /bin/false
-    {%- endif %}
-  file.managed:
-    - unless: test -f /usr/local/bin/hyperkube
-    - source: /tmp/hyperkube/hyperkube
-    - mode: 755
-    - makedirs: true
-    - user: root
-    - group: root
-    - require:
-      - cmd: /usr/local/bin/hyperkube
-
 # The default here is that this file is blank. If this is the case, the kubelet
 # won't be able to parse it as JSON and it will not be able to publish events
 # to the apiserver. You'll see a single error line in the kubelet start up file
@@ -110,23 +70,4 @@ fix-service-kubelet:
 
 {% endif %}
 
-kubelet:
-  service.running:
-    - enable: True
-    - watch:
-      - file: /usr/local/bin/hyperkube
-{% if config.get('is_systemd') %}
-      - file: {{ config.get('systemd_system_path') }}/kubelet.service
-{% else %}
-      - file: /etc/init.d/kubelet
-{% endif %}
-{% if grains['os_family'] == 'RedHat' %}
-      - file: /usr/lib/systemd/system/kubelet.service
-{% endif %}
-      - file: {{ environment_file }}
-      - file: /var/lib/kubelet/kubeconfig
-      - file: /var/lib/kubelet/ca.crt
-{% if config.get('is_systemd') %}
-    - provider:
-      - service: systemd
-{%- endif %}
+

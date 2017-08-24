@@ -54,7 +54,7 @@ openssl:
 kubernetes-cert:
   cmd.script:
     - unless: test -f /srv/kubernetes/server.cert
-    - source: salt://kubernetes/generate-cert/{{certgen}}
+    - source: salt://kubernetes/cert/{{certgen}}
 {% if cert_ip is defined %}
     - args: {{cert_ip}} {{master_extra_sans}}
     - require:

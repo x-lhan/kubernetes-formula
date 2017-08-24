@@ -1,0 +1,3 @@
+include:
+  - .configured
+  - .kubelet.running

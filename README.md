@@ -36,7 +36,7 @@ Pool node:
 
     a. Scope master nodes by setting pillar data `kubernetes:master` to `True`.
   
-    b. Apply `kuberentes.generate-cert` state to one master node.
+    b. Apply `kuberentes.cert.configured` state to one master node.
   
     c. Copy all newly generated certs under `/srv/kubernets/`(ca.crt, server.key, server.cert, kubecfg.key, kubecfg.crt) into pillar `kubernetes:certs` with filename as key and file content as value.
   
@@ -105,13 +105,7 @@ Pool node:
   * cluster auto-scaler feature rely on cloud provider, for AWS please reference [here](https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/aws/README.md)
   * To enable auto-scaler make sure pillar data `kubernetes:cluster_autoscaler:enabled` is true(Default is false) and set `kubernetes:cluster_autoscaler:params` as needed. 
 
-## Notes
 
-* For easier debugging purpose: a `kuberenetes.kubelet.reset` state can be apply to all nodes to make sure kubelet is stop and all generated container is removed. e.g. To hard restart the cluster: `kubernetes` state can be apply to include this `kubelet.reset` state like this:
-
-```
-  salt minion* state.sls kubernetes pillar='{"kubernetes":{"reset_kubelet": true}}'
-```
 ## TODO
 
 1. add logrotate to generate logs

@@ -1,7 +1,7 @@
 {% from "kubernetes/map.jinja" import config with context %}
 
 include:
-  - .reset
+  - .stopped
   
 
 
@@ -10,6 +10,11 @@ include:
 {% else %}
 {% set environment_file = '/etc/default/kubelet' %}
 {% endif %}
+
+remove-all-containers:
+  cmd.run:
+    - name: docker rm -f $(docker ps -a -q)
+    - shall: bash
 
 {{ environment_file}}:
   file.absent
