@@ -1,4 +1,6 @@
 {% from "kubernetes/map.jinja" import config with context %}
+include:
+  - .installed
 
 
 {% if config.get('is_systemd') %}

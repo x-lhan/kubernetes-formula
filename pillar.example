@@ -1,13 +1,20 @@
 kubernetes:
+  # scope master/pool nodes by minion_id
   {% if grains['id'].startswith('kubernetes-master') %}
   master: True
   {% else %}
   pool: True
   {% endif %}
-  # (Optional) to enable flannel as network plugin
-  network_provider: cni
+  # which host interface to bind, default eth0
   bind_iface: eth1
+  
+  # (Optional) to enable cni network plugin
+  network_provider: cni
+  # default flannel
+  cni_provider: canal
   allocate_node_cidrs: true
+  
+  
   # Please reference default.yml file for more configurable pillar data
     
     
