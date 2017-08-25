@@ -1,14 +1,20 @@
+{% from "kubernetes/map.jinja" import config with context %}
+
 # This ConfigMap can be used to configure a self-hosted Canal installation.
 kind: ConfigMap
 apiVersion: v1
 metadata:
   name: canal-config
   namespace: kube-system
+  labels:
+    tier: node
+    k8s-app: canal
+    addonmanager.kubernetes.io/mode: EnsureExists
 data:
   # The interface used by canal for host <-> host communication.
   # If left blank, then the interface is chosen using the node's
   # default route.
-  canal_iface: ""
+  canal_iface: "{{ config.bind_iface }}"
 
   # Whether or not to masquerade traffic to destinations not within
   # the pod network.
@@ -39,9 +45,9 @@ data:
   # Flannel network configuration. Mounted into the flannel container.
   net-conf.json: |
     {
-      "Network": "10.244.0.0/16",
+      "Network": "{{ config.cluster_cidr }}",
       "Backend": {
-        "Type": "vxlan"
+        "Type": "{{ config.flannel_backend_mode }}"
       }
     }
 
@@ -56,7 +62,10 @@ metadata:
   name: canal
   namespace: kube-system
   labels:
+    tier: node
     k8s-app: canal
+    kubernetes.io/cluster-service: "true"
+    addonmanager.kubernetes.io/mode: Reconcile
 spec:
   selector:
     matchLabels:
@@ -120,9 +129,7 @@ spec:
               value: "ACCEPT"
           securityContext:
             privileged: true
-          resources:
-            requests:
-              cpu: 250m
+
           volumeMounts:
             - mountPath: /lib/modules
               name: lib-modules
@@ -212,3 +219,6 @@ kind: ServiceAccount
 metadata:
   name: canal
   namespace: kube-system
+  labels:
+    kubernetes.io/cluster-service: "true"
+    addonmanager.kubernetes.io/mode: Reconcile

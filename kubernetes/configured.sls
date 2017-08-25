@@ -27,7 +27,7 @@ include:
   - .rescheduler
 {% endif %}
 {%- endif %}
-
-  - .kubelet.configured
+ 
+  - .logrotate
   - .kube-proxy
 {%- endif %}

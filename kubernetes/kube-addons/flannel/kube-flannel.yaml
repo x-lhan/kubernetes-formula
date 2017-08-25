@@ -33,7 +33,7 @@ data:
     {
       "Network": "{{ config.cluster_cidr }}",
       "Backend": {
-        "Type": "{{ config.flannel.backend_mode }}"
+        "Type": "{{ config.flannel_backend_mode }}"
       }
     }
 ---
@@ -64,9 +64,13 @@ spec:
       nodeSelector:
         beta.kubernetes.io/arch: amd64
       tolerations:
-      - key: node-role.kubernetes.io/master
-        operator: Exists
-        effect: NoSchedule
+        # Allow the pod to run on the master.  This is required for
+        # the master to communicate with pods.
+        - key: node-role.kubernetes.io/master
+          effect: NoSchedule
+        # Mark the pod as a critical add-on for rescheduling.
+        - key: "CriticalAddonsOnly"
+          operator: "Exists"
       serviceAccountName: flannel
       containers:
       - name: kube-flannel

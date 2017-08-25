@@ -5,6 +5,7 @@ pkg-core:
     - names:
       - curl
       - ebtables
+      - logrotate
 {% if grains['os_family'] == 'RedHat' %}
       - python
       - git

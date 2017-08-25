@@ -16,7 +16,6 @@
     - dir_mode: 755
     - require:
       - service: docker
-      - service: kubelet
 
 /var/log/cluster-autoscaler.log:
   file.managed:

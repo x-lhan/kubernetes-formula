@@ -15,7 +15,6 @@
     - dir_mode: 755
     - require:
       - service: docker
-      - service: kubelet
 
 /var/log/kube-controller-manager.log:
   file.managed:

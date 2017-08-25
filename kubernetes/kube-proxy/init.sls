@@ -24,7 +24,6 @@
         cpurequest: '100m'
     - require:
       - service: docker
-      - service: kubelet
 
 /var/log/kube-proxy.log:
   file.managed:

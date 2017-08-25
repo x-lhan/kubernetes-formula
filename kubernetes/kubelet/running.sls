@@ -1,5 +1,6 @@
 {% from "kubernetes/map.jinja" import config with context %}
-
+include:
+  - .configured
 kubelet:
   service.running:
     - enable: True
