@@ -1,4 +1,4 @@
-{% set certs_filenames = ['ca.crt', 'server.key', 'server.cert', 'kubecfg.key', 'kubecfg.crt'] %}
+{% from "kubernetes/map.jinja" import config with context %}
 remove-generated-ca-crt:
   file.absent: 
     - onlyif: test -f /usr/local/share/ca-certificates/kubernetes-ca.crt
@@ -8,7 +8,7 @@ remove-generated-ca-crt:
     - require:
       - file: remove-generated-ca-crt
 
-{% for file in certs_filenames %}
+{% for file in config.certs_files %}
 remove-generated-{{ file }}:
   file.absent: 
     - name: /srv/kubernetes/{{ file }}

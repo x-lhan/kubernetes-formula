@@ -1,7 +1,23 @@
+{% from "kubernetes/map.jinja" import config with context %}
+
 /var/lib/kube-proxy/kubeconfig:
   file.managed:
     - source: salt://kubernetes/kube-proxy/kubeconfig
     - template: jinja
+    - user: root
+    - group: root
+    - mode: 400
+    - makedirs: true
+
+/var/lib/kube-proxy/ca.crt:
+  file.managed:
+    {% if config.certs is defined and config.certs["ca.crt"] is defined %}
+    - contents: |
+        {{ config.certs["ca.crt"]| indent(8) }}
+    {% else %}
+    - onlyif: test -f /srv/kubernetes/ca.crt
+    - source: /srv/kubernetes/ca.crt
+    {% endif %}
     - user: root
     - group: root
     - mode: 400

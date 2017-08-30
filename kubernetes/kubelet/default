@@ -193,8 +193,8 @@
 
 {% set kubelet_auth = "--authorization-mode=Webhook"%}
 
-{% if config.ca_cert_bundle_path is defined %}
-{% set kubelet_auth = kubelet_auth + "--anonymous-auth=False --client-ca-file=" + config.ca_cert_bundle_path %}
+{% if config.certs is defined and config.certs["ca.crt"] is defined %}
+{% set kubelet_auth = kubelet_auth + " --anonymous-auth=False --client-ca-file=/var/lib/kubelet/ca.crt" %}
 {% endif %}
 
 # test_args has to be kept at the end, so they'll overwrite any prior configuration

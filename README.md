@@ -38,21 +38,15 @@ In cluster:
 ```
 
 
-    
-
 ## How to use?
 
 1. Create pillar data file based on `pillar.example` file and modify as needed.(More configurable pillar data can be referenced from `default.yml`); (Required for aws) make sure grains data `cloud` is `aws`
-2. (Optional) To use cni network plugin for pod-to-pod networking, please modify/add pillar data as needed(`bind_iface: eth1`, `network_provider: cni`, `allocate_node_cidrs: true`, `cni_provider: canal` ). 
-3. (Optional, only required for multi-master nodes setup) Generate TLS certificates and share among master nodes:
-
-    a. Scope master nodes by setting pillar data `kubernetes:master` to `True`.
+2. Generate TLS certificates and share among nodes:
   
-    b. Apply `kuberentes.cert.configured` state to one master node.
+    * Apply `kuberentes.cert.configured` state to one master node.
+    * Copy all newly generated certs contents(using `kuberentes.cert.view`) into pillar `kubernetes:certs`.
   
-    c. Copy all newly generated certs under `/srv/kubernets/`(ca.crt, server.key, server.cert, kubecfg.key, kubecfg.crt) into pillar `kubernetes:certs` with filename as key and file content as value.
-  
-4. Apply `kubernetes.running` state among cluster master and pool nodes.
+3. Apply `kubernetes.running` state among cluster master and pool nodes.
 
 ### Note for setting up HA etcd/apiserver
 * HA etcd require at least 3 node to be fault-tolerant, with the current setup meaning at least 3 master nodes

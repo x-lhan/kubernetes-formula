@@ -1,2 +1,4 @@
 {%- from "kubernetes/map.jinja" import config with context %}
+{% if config.admin.password is defined %}
 {{ config.admin.password }},{{ config.admin.username }},admin
+{% endif %}

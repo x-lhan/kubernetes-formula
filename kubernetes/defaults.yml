@@ -1,11 +1,11 @@
 {% set version = "v1.7.0" %}
-
 {% set master_nodes = salt['mine.get']('kubernetes:master', 'network.internal_ip', 'pillar') -%}
 {% set master_ips = master_nodes.values() -%}
-
 {% set pool_nodes = salt['mine.get']('kubernetes:pool', 'network.internal_ip', 'pillar') -%}
 
 kubernetes:
+  master_ips: {{master_ips}}
+
   # version info
   version: {{ version }}
   kube-apiserver_docker_tag: {{ version }}
@@ -30,56 +30,79 @@ kubernetes:
   is_systemd: False
   {% endif %}
   
+  # Recommand set of admission control plugins
   admission_control: "NamespaceLifecycle,LimitRanger,ServiceAccount,PersistentVolumeLabel,DefaultStorageClass,ResourceQuota,DefaultTolerationSeconds"
-  kube_user: "system:anonymous"
-  network_provider: "kubenet"
-  cni_provider: "flannel"
-  allow_privileged: true
-  log_level: "--v=0"
+  
+  # Pod-to-pod network provider. support "cni" and "kubenet", defualt to "cni".
+  network_provider: "cni"
+  # actual cni provider to use when "network_provider" is "cni". support "canal" and "flannel", defualt to "canal"
+  cni_provider: "canal"
+  # Service CIDR; when changed please also change "master_extra_sans" and "dns_server" and regenerate cluster certificates
   service_cluster_ip_range: "10.254.0.0/16"
+  # Cluster pod CIDR
   cluster_cidr: "10.150.0.0/16"
-  minion_id_as_hostname: false
-  api_server:
-    ip: {{ master_ips[0] }}
-    port: 6443
-    fqdn: kubernetes.api
-    register_schedulable: false
-  master_extra_sans: "IP:10.254.0.1,DNS:kubernetes,DNS:kubernetes.default,DNS:kubernetes.default.svc,DNS:kubernetes.default.svc.cluster.local"
-  master_nodes: {{master_nodes}}
-  master_ips: {{master_ips}}
-  pool_nodes: {{pool_nodes}}
+  # Host network interface that binded, when changed please make sure mine funcation "network.internal_ip" is also changed
   bind_iface: eth0
   flannel_backend_mode: vxlan
+  allocate_node_cidrs: true
+  
+  # If true, allow containers to request privileged mode.
+  allow_privileged: true
+  
+  # Default log level to warning, consider increase to level 2(info) or level 4(debug) for more detail logs
+  log_level: "--v=0"
+  
+
+  # If true, override node hostname to use saltstack minion_id and make minion_id resolvable using /etc/hosts file on master node.
+  # Please note: in AWS even though hostname is override the nodename is discovered using cloud meta-data instead.
+  minion_id_as_hostname: false
+  master_nodes: {{master_nodes}}
+  pool_nodes: {{pool_nodes}}
+  
+  # kuberentes api_server configurations
+  api_server:
+    # when put multiply api_server behind load-balancer, please put load-balancer address here 
+    ip: {{ master_ips[0] }}
+    port: 6443
+    # when changed, please regenerate cluster certificates
+    fqdn: kubernetes.api
+    # If true, api_server will be schedulable like pool node. Default to false
+    register_schedulable: false
+  
+  # certificates sans
+  master_extra_sans: "IP:10.254.0.1,DNS:kubernetes,DNS:kubernetes.default,DNS:kubernetes.default.svc,DNS:kubernetes.default.svc.cluster.local"
+  certs_files:
+    - 'ca.crt'
+    - 'server.key'
+    - 'server.cert'
+    - 'kubecfg.key'
+    - 'kubecfg.crt'
+  # Authentication
   admin:
     username: admin
-    password: admin
   token:
     admin: DFvQ8GJ9JD4fKNfuyEddw3rjnFTkUKsv
-    controller_manager: EreGh6AnWf8DxH8cYavB2zS029PUi7vx
-    dns: RAFeVSE4UvsCz4gk3KYReuOI5jsZ1Xt3
     kube_proxy: DFvQ8GelB7afH3wClC9romaMPhquyyEe
     kubelet:  7bN5hJ9JD4fKjnFTkUKsvVNfuyEddw3r
-    logging: MJkXKdbgqRmTHSa2ykTaOaMykgO6KcEf
-    monitoring: hnsj0XqABgrSww7Nqo7UVTSZLJUt2XRd
-    scheduler: HY1UUxEPpmjW4a1dDLGIANYQp1nZkLDk
   
-  addons:
-    logging: True
-    monitoring: True
   # storage class
   enable_default_storage_class: False
   default_storage_class_zones: ""
+  
   # etcd
   keep_host_etcd: False
-  # Addons
+  
   # dashboard
   enable_cluster_ui: True
+  
   # rescheduler
   enable_rescheduler: True
+  
   # cluster_autoscaler
   cluster_autoscaler: 
     enabled: False
     params: []
+  
   # dns
   enable_cluster_dns: True
   dns_server: 10.254.254.254

@@ -3,7 +3,7 @@ kube-cert:
   group.present:
     - system: True
 {% if config.certs is defined %}
-{% for name, cert in config.certs.items() %} 
+{% for name in config.certs_files %} 
 /srv/kubernetes/{{ name }}:
   file.managed:
     - mode: 660
@@ -11,7 +11,7 @@ kube-cert:
     - group: kube-cert
     - makedirs: true
     - contents: |
-        {{ cert| indent(8) }}   
+        {{ config.certs[name] | indent(8) }}   
 {% endfor %}
 
 {% else %}
@@ -29,12 +29,10 @@ kube-cert:
     {% set cert_ip=grains.ip_interfaces.eth0[0] %}
   {% endif %}
 {% endif %}
-
+{% if cert_ip is not defined %}
 {% set cert_ip = grains.get("ip_interfaces").get(config.bind_iface)[0] %}
+{% endif %}
 {% set master_extra_sans=config.get('master_extra_sans') + ",DNS:" + config.api_server.fqdn %}
-
-
-{% set master_extra_sans = 'IP:'+config.master_ips|join(',IP:') ~ "," + master_extra_sans %}
 
 # If there is a config defined, override any defaults.
 {% if config['cert_ip'] is defined %}

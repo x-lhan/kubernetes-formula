@@ -5,15 +5,15 @@ kubernetes:
   {% else %}
   pool: True
   {% endif %}
-  # which host interface to bind, default eth0
+  
+  # which host interface to bind, default eth0. when changed please make sure mine funcation "network.internal_ip" is also changed
   bind_iface: eth1
   
-  # (Optional) to enable cni network plugin
-  network_provider: cni
-  # default flannel
-  cni_provider: canal
-  allocate_node_cidrs: true
-  
+  # Override default token for security practice
+  token:
+    admin: REPLACE_ME_WITH_BASE64_TOKEM_FOR_ADMIN
+    kube_proxy: REPLACE_ME_WITH_BASE64_TOKEM_FOR_KUBE_PROXY
+    kubelet:  REPLACE_ME_WITH_BASE64_TOKEM_FOR_KUBELET
   
   # Please reference default.yml file for more configurable pillar data
     
