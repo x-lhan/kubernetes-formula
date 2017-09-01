@@ -21,7 +21,7 @@
 {% set debugging_handlers = "--enable-debugging-handlers=true" -%}
 {% set register_with_taints = "" %}
 
-{% if pillar.kubernetes.master is defined -%}
+{% if config.master is defined -%}
 
 
     # Unless given a specific directive, disable registration for the kubelet
@@ -119,7 +119,7 @@
 {% endif -%}
 
 {% set pod_cidr = "" %}
-{% if pillar.kubernetes.master is defined %}
+{% if config.master is defined %}
   {% if grains.get('cbr-cidr') %}
     {% set pod_cidr = "--pod-cidr=" + grains['cbr-cidr'] %}
   {% elif config.get('network_provider', '').lower() == 'kubenet' %}
@@ -160,7 +160,7 @@
 # need to make its container bridge promiscuous. We also don't want to set
 # the hairpin-veth flag on the master because it increases the chances of
 # running into the kernel bug described in #20096.
-{% if pillar.kubernetes.master is defined -%}
+{% if config.master is defined -%}
   {% set hairpin_mode = "--hairpin-mode=none" -%}
 {% elif config['hairpin_mode'] is defined and config['hairpin_mode'] in ['promiscuous-bridge', 'hairpin-veth', 'none'] -%}
   {% set hairpin_mode = "--hairpin-mode=" + config['hairpin_mode'] -%}

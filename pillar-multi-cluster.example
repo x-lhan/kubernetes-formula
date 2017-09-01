@@ -1,0 +1,47 @@
+kubernetes:
+  # default k8s cluster environment.
+  # PLEASE NOTE: this is if-elif check is necessary to ensure there is only one set of k8s cluster config for each node.
+  #              It is not only good for security practice but also required to walk-around a confusing bug within 
+  #              saltstack: if "kubernetes:defaults" and "kubernetes:stage" pillar data is both existing, salt "*" 
+  #              pillar.get kubernetes:defaults:master will show correct result but salt "*" pillar.get 
+  #              kubernetes:stage:master will not.
+  {% if grains['id'].startswith('k8s') %}
+  defaults:
+    # scope master/pool nodes by minion_id
+    {% if grains['id'].startswith('k8s-master') %}
+    master: True
+    {% elif grains['id'].startswith('k8s-pool') %}
+    pool: True
+    {% endif %}
+  
+    # which host interface to bind, default eth0. when changed please make sure mine funcation "network.internal_ip" is also changed
+    bind_iface: eth0
+  
+    # Override default token for security practice
+    token:
+      admin: REPLACE_ME_WITH_BASE64_TOKEM_FOR_ADMIN
+      kube_proxy: REPLACE_ME_WITH_BASE64_TOKEM_FOR_KUBE_PROXY
+      kubelet:  REPLACE_ME_WITH_BASE64_TOKEM_FOR_KUBELET
+  
+    # please use "kuberentes.cert.configured" and "kuberentes.cert.view" state to fill this part
+    certs:
+    
+    # Please reference default.yml file for more configurable pillar data
+  
+  # (optinal)for multiple k8s cluster environments. please add grain to all nodes with "k8s_env" as key and environment name as value
+  # e.g. for stage k8s cluster: salt "ALL_STAGE_NODES" grains.set k8s_env stage
+  {% elif grains['id'].startswith('stage-k8s') %}  
+  stage:
+    # scope master/pool nodes by minion_id
+    {% if grains['id'].startswith('stage-k8s-master') %}
+    master: True
+    {% elif grains['id'].startswith('stage-k8s-pool') %}
+    pool: True
+    {% endif %}
+    
+    # please use "kuberentes.cert.configured" and "kuberentes.cert.view" state to fill this part
+    certs:
+    
+    # which host interface to bind, default eth0. when changed please make sure mine funcation "network.internal_ip" is also changed
+    bind_iface: eth1
+  {% endif %}

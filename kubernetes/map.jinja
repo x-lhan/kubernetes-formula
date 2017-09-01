@@ -1,3 +1,3 @@
 {% import_yaml "kubernetes/defaults.yml" as defaults %}
 
-{% set config = salt['pillar.get']('kubernetes', default=defaults['kubernetes'], merge=True) %}
+{% set config = salt['pillar.get']('kubernetes:' + defaults.k8s_env, default=defaults['kubernetes'], merge=True) %}

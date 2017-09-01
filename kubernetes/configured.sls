@@ -13,7 +13,7 @@ include:
   - .cni
 {% endif %}
 
-{%- if pillar.kubernetes.master is defined %}
+{%- if config.master is defined %}
   - .cert.configured
   - .etcd
   - .kube-apiserver

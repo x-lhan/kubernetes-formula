@@ -21,7 +21,7 @@ ensure-api_server-fqdn-exist:
     - names:
       - {{ config.api_server.fqdn }}
 
-{% if pillar.kubernetes.master is defined and config.get("minion_id_as_hostname", false) -%}
+{% if config.master is defined and config.get("minion_id_as_hostname", false) -%}
 {% for server, addrs in config.master_nodes.items() %}
 ensure-master-node-{{server}}-fqdn-exist:
   host.present:
