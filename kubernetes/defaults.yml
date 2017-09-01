@@ -73,6 +73,8 @@ kubernetes:
     fqdn: kubernetes.api
     # If true, api_server will be schedulable like pool node. Default to false
     register_schedulable: false
+    # If true, api_server will be able to exec/log like pool node using kubectl. Default to false
+    debugging_handlers: false
   
   # certificates sans
   master_extra_sans: "IP:10.254.0.1,DNS:kubernetes,DNS:kubernetes.default,DNS:kubernetes.default.svc,DNS:kubernetes.default.svc.cluster.local"

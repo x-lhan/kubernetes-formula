@@ -29,11 +29,13 @@
     {% if grains.kubelet_api_servers is defined or config.api_server.ip is defined and not config.api_server.register_schedulable -%}
       {% set register_with_taints = "node-role.kubernetes.io/master=:NoSchedule" -%}
     {% endif -%}
-
+    
+    {% if not config.api_server.debugging_handlers %}
     # Disable the debugging handlers (/run and /exec) to prevent arbitrary
     # code execution on the master.
     # TODO(roberthbailey): Relax this constraint once the master is self-hosted.
     {% set debugging_handlers = "--enable-debugging-handlers=false" -%}
+    {% endif %}
 {% endif -%}
 
 {% if config.register_with_taints is defined %}

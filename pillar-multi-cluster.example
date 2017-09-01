@@ -1,3 +1,12 @@
+mine_functions:
+  network.internal_ip:
+    - mine_function: grains.get
+    {% if grains['id'].startswith('k8s') %}
+    - 'ip_interfaces:eth0:0'
+    {% elif grains['id'].startswith('stage-k8s') %}
+    - 'ip_interfaces:eth1:0'
+    {% endif %}
+
 kubernetes:
   # default k8s cluster environment.
   # PLEASE NOTE: this is if-elif check is necessary to ensure there is only one set of k8s cluster config for each node.
@@ -24,6 +33,7 @@ kubernetes:
       kubelet:  REPLACE_ME_WITH_BASE64_TOKEM_FOR_KUBELET
   
     # please use "kuberentes.cert.configured" and "kuberentes.cert.view" state to fill this part
+    # or reuse existing certs
     certs:
     
     # Please reference default.yml file for more configurable pillar data

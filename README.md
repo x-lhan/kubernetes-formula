@@ -42,12 +42,12 @@ In cluster:
 
 * Pillar and grains data preparation:
   1. (Only for multi-clusters) scope nodes into different clusters by identifying node's grains data `k8s_env` with the same cluster environment name(e.g. stage/qa etc.); For the nodes do not have `k8s_env` grain set will be added into the `defaults` clusters.
-  2. Create pillar data file based on `pillar.example`/`pillar-multi-cluster.example` file and modify as needed.(More configurable pillar data can be referenced from `default.yml`); 
+  2. Create pillar data file based on `pillar.example`/`pillar-multi-cluster.example` file and modify as needed.(Master/pool nodes grouping can be confirmed with command like: `salt ANY_NODE mine.get kubernetes:[K8S_ENV]:[master|pool] network.internal_ip pillar`); 
   3. (Only for aws) make sure grains data `cloud` is `aws` for all aws nodes;
-  4. Generate TLS certificates and share among nodes:
+  4. Generate new or reuse existing TLS certificates and share among nodes:
   
-    * Apply `kuberentes.cert.configured` state to one master node.
-    * Copy all newly generated certs contents(using `kuberentes.cert.view`) into pillar `kubernetes:[K8S_ENV]:certs`.
+      * (Only for generate new)Apply `kuberentes.cert.configured` state to one master node.
+      * Copy all newly generated(using `kuberentes.cert.view` for convenience) or existing certs contents into pillar `kubernetes:[K8S_ENV]:certs`.
   
 * Apply `kubernetes.running` state among cluster master and pool nodes.
 
@@ -78,14 +78,13 @@ In cluster:
     1. evict all scheduled pods by using command `hyperkube kubectl taint node TARGET_NODE evict=true:NoExecute`
     2. remove the target etcd node from existing etcd cluster by running the following commands within an etcd container. For example the ip of the new master node is 192.168.51.7, then:
     
-      * locate member_id by matching ip with result of command `etcdctl member list`; then remove from kubernete main etcd cluster by command `etcdctl member delete TARGET_MEMBER_ID`
-      * locate member_id by matching ip with result of command `etcdctl --endpoints=http://127.0.0.1:4002 member list`; then remove from kubernete event etcd cluster by using `etcdctl --endpoints=http://127.0.0.1:4002 member delete TARGET_MEMBER_ID` 
+      * locate member_id by matching ip with result of command `etcdctl member list`; then remove from kubernete main etcd cluster by command `etcdctl member remove TARGET_MEMBER_ID`
+      * locate member_id by matching ip with result of command `etcdctl --endpoints=http://127.0.0.1:4002 member list`; then remove from kubernete event etcd cluster by using `etcdctl --endpoints=http://127.0.0.1:4002 member remove TARGET_MEMBER_ID` 
       
     3. remove node from kubernete cluster by using `hyperkube kubectl delete node TARGET_NODE` on a master node
     4. using salt-cloud/salt-key to delete the node from saltstack cluster
     5. run `salt 'ALL_NODE_*' saltutil.refresh_pillar` to update pillar data
-    6. run `salt 'TARGET_MASTER_NODE' state.sls kubernetes.running` to apply kubernetes state to update
-    7. make sure load-balancer(e.g. haproxy) is updated if configured 
+    6. make sure load-balancer(e.g. haproxy) is updated if configured 
 
 
 #### Pool node
@@ -157,6 +156,10 @@ Ensure cni network plugin is removed, please make sure cni configuration will no
 ### kubernetes.cert.configured
 
 Ensure kubernetes cluster certificate is generated and configured into host
+
+### kubernetes.cert.view
+
+View the configured certificates as configurable pillar data `kubernetes:[K8S_ENV]:certs`
 
 ### kubernetes.cert.removed
 
