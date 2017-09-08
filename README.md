@@ -119,6 +119,36 @@ In cluster:
   3. remove existing cni configuration by applying `kubernetes.cni.removed` state
   4. restart the node to clean up old network configuration rule on the host
 
+### Note for cluster registry
+
+  * cluster registry rely on cloud provider(AWS), it provide a docker registry within the cluster.
+  * To start registry, please make sure the following pillar data existing, then apply `kubernetes.running` state to all master nodes:
+   
+      <code>
+        kubernetes:
+          [K8S_ENV]:
+            enable_cluster_registry: true
+            cluster_registry_disk_size: 1Gi
+      
+            # (optional) specify storage_classname or enable default storage class name
+            # cluster_registry_storage_classname: gp2
+            # enable_default_storage_class: true
+            # default_storage_class_zones: "us-west-1a,us-west-1c[,ADD_SUPPORT_ZONES]"
+            
+            # (optional) override default registry server(10.254.50.50)
+            # registry_server: 10.254.50.50
+      </code>    
+  * To stop registry, please use salt to remove `/etc/kubernetes/addons/registry/registry-rc.yaml` file in all master node. (If intend to remove the *persistent volume* as well, remove `/etc/kubernetes/addons/registry/` directory instead)
+  * To push image from outside of cluster(e.g. linux workstation, there is a [bug](https://github.com/moby/moby/issues/29608) prevent osx client), the following command can be used to forward the local `5000` port to registry pod `5000` pod then simply push to `localhost:5000/[IMAGE_NAME]`:
+   
+      <code>
+        kubectl port-forward --namespace kube-system REPLACE_WITH_REGISTRY_POD_NAME 5000:5000 &
+        docker tag IMAGE_ID localhost:5000/IMAGE_NAME
+        docker push localhost:5000/IMAGE_NAME
+      </code>
+  * After configured docker daemon to accept `10.254.50.50:5000` as insecure registry. Image within registry can be consumed like `image: 10.254.50.50:5000/IMAGE_NAME` by kubelet. 
+   
+
 ## Support states
 
 ### kubernetes.installed

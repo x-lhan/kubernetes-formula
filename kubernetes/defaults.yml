@@ -115,5 +115,11 @@ kubernetes:
   dns_server: 10.254.254.254
   dns_domain: cluster.local
   federations_domain_map: ""
+  
+  # registry(require cloud provider support and enable_default_storage_class)
+  enable_cluster_registry: False
+  registry_server: 10.254.50.50
+  cluster_registry_disk_size: 1Gi
+  cluster_registry_storage_classname: gp2
 
       

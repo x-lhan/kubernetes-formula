@@ -1,3 +1,4 @@
+{% from "kubernetes/map.jinja" import config with context %}
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
@@ -9,6 +10,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
+  storageClassName: {{ config.cluster_registry_storage_classname }}
   resources:
     requests:
-      storage: {{ pillar['cluster_registry_disk_size'] }}
+      storage: {{ config.cluster_registry_disk_size }}

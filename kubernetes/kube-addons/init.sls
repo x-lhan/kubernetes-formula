@@ -124,10 +124,11 @@ addon-dir-create:
     - makedirs: True
 {% endif %}
 
-{% if config.enable_cluster_registry is defined and config.enable_cluster_registry %}
+{% if config.enable_cluster_registry %}
 /etc/kubernetes/addons/registry/registry-svc.yaml:
   file.managed:
     - source: salt://kubernetes/kube-addons/registry/registry-svc.yaml
+    - template: jinja
     - user: root
     - group: root
     - file_mode: 644
@@ -136,15 +137,6 @@ addon-dir-create:
 /etc/kubernetes/addons/registry/registry-rc.yaml:
   file.managed:
     - source: salt://kubernetes/kube-addons/registry/registry-rc.yaml
-    - user: root
-    - group: root
-    - file_mode: 644
-    - makedirs: True
-
-/etc/kubernetes/addons/registry/registry-pv.yaml:
-  file.managed:
-    - source: salt://kubernetes/kube-addons/registry/registry-pv.yaml.in
-    - template: jinja
     - user: root
     - group: root
     - file_mode: 644
