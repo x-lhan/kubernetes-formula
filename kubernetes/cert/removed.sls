@@ -13,3 +13,6 @@ remove-generated-{{ file }}:
   file.absent: 
     - name: /srv/kubernetes/{{ file }}
 {% endfor %}
+
+/usr/local/share/ca-certificates/kubernetes-ca.crt:
+  file.absent

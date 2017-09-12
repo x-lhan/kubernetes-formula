@@ -67,7 +67,6 @@ kubernetes-cert:
 {% endif %}
 sys-install-kubernetes-ca:
   file.managed:
-    - unless: test -f /usr/local/share/ca-certificates/kubernetes-ca.crt
     - source: /srv/kubernetes/ca.crt
     - name: /usr/local/share/ca-certificates/kubernetes-ca.crt
     - user: root
