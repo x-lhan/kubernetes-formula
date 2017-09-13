@@ -1,4 +1,4 @@
-{% set logrotate_files = ['kube-scheduler', 'kube-proxy', 'kubelet', 'kube-apiserver', 'kube-apiserver-audit', 'kube-controller-manager', 'kube-addons', 'docker'] %}
+{% set logrotate_files = ['kube-scheduler', 'kube-proxy', 'kubelet', 'kube-apiserver', 'kube-apiserver-audit', 'kube-controller-manager', 'kube-addon-manager', 'docker', 'rescheduler'] %}
 {% for file in logrotate_files %}
 /etc/logrotate.d/{{ file }}:
   file:
