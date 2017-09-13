@@ -3,10 +3,9 @@
 {% if grains['k8s_env'] is defined %}
 {% set k8s_env = grains['k8s_env'] %}
 {% endif %}
-{% set master_nodes = salt['mine.get']('kubernetes:' + k8s_env + ':master', 'network.internal_ip', 'pillar') -%}
+{% set master_nodes = salt['mine.get']('I@kubernetes:master and I@kubernetes:k8s_env:' + k8s_env, 'network.internal_ip', 'compound') -%}
 {% set master_ips = master_nodes.values() -%}
-{% set pool_nodes = salt['mine.get']('kubernetes:' + k8s_env + ':pool', 'network.internal_ip', 'pillar') -%}
-k8s_env: {{ k8s_env }}
+{% set pool_nodes = salt['mine.get']('I@kubernetes:pool and I@kubernetes:k8s_env:'+ k8s_env, 'network.internal_ip', 'compound') -%}
 
 kubernetes:
   master_ips: {{master_ips}}

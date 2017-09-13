@@ -42,18 +42,18 @@ In cluster:
 
 * Pillar and grains data preparation:
   1. (Only for multi-clusters) scope nodes into different clusters by identifying node's grains data `k8s_env` with the same cluster environment name(e.g. stage/qa etc.); For the nodes do not have `k8s_env` grain set will be added into the `defaults` clusters.
-  2. Create pillar data file based on `pillar.example`/`pillar-multi-cluster.example` file and modify as needed.(Master/pool nodes grouping can be confirmed with command like: `salt ANY_NODE mine.get kubernetes:[K8S_ENV]:[master|pool] network.internal_ip pillar`); 
+  2. Create pillar data file based on `pillar.example`/`pillar-multi-cluster.example` file and modify as needed.(Master/pool nodes grouping can be confirmed with command like: `salt ANY_NODE mine.get 'I@kubernetes:[master|pool] and I@kubernetes:k8s_env:[K8S_ENV]' network.internal_ip compound`); 
   3. (Only for aws) make sure grains data `cloud` is `aws` for all aws nodes;
   4. Generate new or reuse existing TLS certificates and share among nodes:
   
       * (Only for generate new)Apply `kuberentes.cert.configured` state to one master node.
-      * Copy all newly generated(using `kuberentes.cert.view` for convenience) or existing certs contents into pillar `kubernetes:[K8S_ENV]:certs`.
+      * Copy all newly generated(using `kuberentes.cert.view` for convenience) or existing certs contents into pillar `kubernetes:certs`.
   
 * Apply `kubernetes.running` state among cluster master and pool nodes.
 
 ### Note for setting up HA etcd/apiserver
 * HA etcd require at least 3 nodes to be fault-tolerant, with the current setup meaning at least 3 master nodes
-* HA apiserver require to put all apiserver endpoint(`https://MASTER_NODE_IP:6443`) behind one or multiple load balancer. Then add the load balancer ip and port to pillar data `kubernetes:[K8S_ENV]:api_server:ip` and `kubernetes:[K8S_ENV]:api_server:port` before step#3.
+* HA apiserver require to put all apiserver endpoint(`https://MASTER_NODE_IP:6443`) behind one or multiple load balancer. Then add the load balancer ip and port to pillar data `kubernetes:api_server:ip` and `kubernetes:api_server:port` before step#3.
 
 ### Note for add/remove node into existing cluster
 
@@ -61,7 +61,7 @@ In cluster:
 
 * Add steps:
 
-    1. make sure pillar data `kubernetes:[K8S_ENV]:master` is true for the host need to add.
+    1. make sure pillar data `kubernetes:master` is true for the host need to add; (Required for aws) make sure grains data `cloud` is `aws`; (Only for multi-clusters) fill `k8s_env` grain data.
     2. make sure grain data `initial_etcd_cluster_state` is "existing" for the host need to add; (Required for aws) make sure grains data `cloud` is `aws`
     3. run `salt 'ALL_NODE_*' saltutil.refresh_pillar` to update pillar data
     4. run `salt 'TARGET_MASTER_NODE' state.sls kubernetes.running` to apply kubernetes state
@@ -91,7 +91,7 @@ In cluster:
 
 * Add steps:
 
-    1. make sure pillar data `kubernetes:[K8S_ENV]:pool` is true for the host need to add; (Required for aws) make sure grains data `cloud` is `aws`
+    1. make sure pillar data `kubernetes:pool` is true for the host need to add; (Required for aws) make sure grains data `cloud` is `aws`; (Only for multi-clusters) fill `k8s_env` grain data.
     2. run `salt 'TARGET_POOL_NODE' state.sls kubernetes.running` to apply kubernetes state
 
 * Remove steps:
@@ -111,7 +111,7 @@ In cluster:
 ### Note for cluster auto-scaler
 
   * cluster auto-scaler feature rely on cloud provider, for AWS please reference [here](https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/aws/README.md)
-  * To enable auto-scaler make sure pillar data `kubernetes:[K8S_ENV]:cluster_autoscaler:enabled` is true(Default is false) and set `kubernetes:[K8S_ENV]:cluster_autoscaler:params` as needed. 
+  * To enable auto-scaler make sure pillar data `kubernetes:cluster_autoscaler:enabled` is true(Default is false) and set `kubernetes:cluster_autoscaler:params` as needed. 
 
 ### Note for removing cni network plugin
   1. evict all scheduled pods by using command `hyperkube kubectl taint node TARGET_NODE evict=true:NoExecute`
@@ -126,17 +126,16 @@ In cluster:
    
       ```
         kubernetes:
-          [K8S_ENV]:
-            enable_cluster_registry: true
-            cluster_registry_disk_size: 1Gi
-      
-            # (optional) specify storage_classname or enable default storage class name
-            # cluster_registry_storage_classname: gp2
-            # enable_default_storage_class: true
-            # default_storage_class_zones: "us-west-1a,us-west-1c[,ADD_SUPPORT_ZONES]"
-            
-            # (optional) override default registry server(10.254.50.50)
-            # registry_server: 10.254.50.50
+          enable_cluster_registry: true
+          cluster_registry_disk_size: 1Gi
+    
+          # (optional) specify storage_classname or enable default storage class name
+          # cluster_registry_storage_classname: gp2
+          # enable_default_storage_class: true
+          # default_storage_class_zones: "us-west-1a,us-west-1c[,ADD_SUPPORT_ZONES]"
+          
+          # (optional) override default registry server(10.254.50.50)
+          # registry_server: 10.254.50.50 
       ```    
   * To stop registry, please use salt to remove `/etc/kubernetes/addons/registry/registry-rc.yaml` file in all master node. (If intend to remove the *persistent volume* as well, remove `/etc/kubernetes/addons/registry/` directory instead)
   * To push image from outside of cluster(e.g. linux workstation, there is a [bug](https://github.com/moby/moby/issues/29608) prevent osx client), the following command can be used to forward the local `5000` port to registry pod `5000` port:
@@ -189,7 +188,7 @@ Ensure kubernetes cluster certificate is generated and configured into host
 
 ### kubernetes.cert.view
 
-View the configured certificates as configurable pillar data `kubernetes:[K8S_ENV]:certs`
+View the configured certificates as configurable pillar data `kubernetes:certs`
 
 ### kubernetes.cert.removed
 

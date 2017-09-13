@@ -6,25 +6,25 @@ mine_functions:
     - 'ip_interfaces:{{ bind_iface }}:0'
 
 kubernetes:
-  defaults:
-    # scope master/pool nodes by minion_id
-    {% if grains['id'].startswith('k8s-master') %}
-    master: True
-    {% elif grains['id'].startswith('k8s-pool') %}
-    pool: True
-    {% endif %}
+  k8s_env: defaults
+  # scope master/pool nodes by minion_id
+  {% if grains['id'].startswith('k8s-master') %}
+  master: True
+  {% elif grains['id'].startswith('k8s-pool') %}
+  pool: True
+  {% endif %}
+
+  # which host interface to bind, default eth0. when changed please make sure mine funcation "network.internal_ip" is also changed
+  bind_iface: {{ bind_iface }}
+
+  # Override default token for security practice
+  token:
+    admin: REPLACE_ME_WITH_BASE64_TOKEM_FOR_ADMIN
+    kube_proxy: REPLACE_ME_WITH_BASE64_TOKEM_FOR_KUBE_PROXY
+    kubelet:  REPLACE_ME_WITH_BASE64_TOKEM_FOR_KUBELET
   
-    # which host interface to bind, default eth0. when changed please make sure mine funcation "network.internal_ip" is also changed
-    bind_iface: {{ bind_iface }}
-  
-    # Override default token for security practice
-    token:
-      admin: REPLACE_ME_WITH_BASE64_TOKEM_FOR_ADMIN
-      kube_proxy: REPLACE_ME_WITH_BASE64_TOKEM_FOR_KUBE_PROXY
-      kubelet:  REPLACE_ME_WITH_BASE64_TOKEM_FOR_KUBELET
-    
-    # please use "kuberentes.cert.configured" and "kuberentes.cert.view" state to fill this part
-    # or reuse existing certs
-    certs:
-  
-    # Please reference default.yml file for more configurable pillar data
+  # please use "kuberentes.cert.configured" and "kuberentes.cert.view" state to fill this part
+  # or reuse existing certs
+  certs:
+
+  # Please reference default.yml file for more configurable pillar data 
