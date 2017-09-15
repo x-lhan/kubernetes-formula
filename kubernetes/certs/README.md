@@ -13,30 +13,13 @@ If you want to learn more, please take a look at the kubernetes documentation. B
 
 ## Relevant States
 
-### configured
+- **present** - puts the certificates stored in the pillar in the right places
+- **removed** - removes the certificates from the file system
+- **generate** - generates new certificates and displays them in a pillar suitable format
 
-Checks to see if certificates are configured in the pillar. If they are not, a new root CA certificate will be generated for Kubernetes, along with a public and private key pair for secure Kubernetes system communications.
+More information can be gathered by reading the states, they are fairly straightforward.
 
-Additionally, if new certificates are generated, a kubecfg key pair will be created as a super-user key pair that can be used to authenticate and authorize cluster actions through tools like the kubectl CLI client. 
-
-### removed
-
-Makes sure the following files are not present
-
-```
-/srv/kubernetes/ca.crt
-/srv/kubernetes/server.cert
-/srv/kubernetes/server.key
-/srv/kubernetes/kubecfg.crt
-/srv/kubernetes/kubecfg.key
-/usr/local/share/ca-certificates/kubernetes-ca.crt
-```
-
-### view
-
-views the certificates stored on the minion and prints them out so that they can be dropped into the pillar by a simple cut and paste
-
-## How to Regenerate Certificates
+## How to Replace Existing Certificates With New Ones
 
 The following process assumes you're running a multi-master cluster, but should work on a single master cluster in the same fashion just by skipping the steps meant for the additional masters.
 
@@ -63,23 +46,16 @@ salt k8s-master-1 state.apply kubernetes.kubelet.removed
 **CAUTION:** This step will remove all the containers running on the master. Because it's a kubernetes master, it'll likely only be running kubernetes specific system containers, so this shouldn't be a big issue.
 
 ```
-salt k8s-master-1 state.apply kubernetes.cert.removed
+salt k8s-master-1 state.apply kubernetes.certs.removed
 ```
 
-This will remove the certificate files on this kubernetes master. Once this is done, **make sure to remove the existing certificates pillar data from the pillar file before generating new certificates**
+This will remove the certificate files on this kubernetes master.
 
 ```
-salt k8s-master-1 saltutil.refresh_pillar
-salt k8s-master-1 state.apply kubernetes.cert.configured
+salt k8s-master-1 state.apply kubernetes.certs.generate
 ```
 
-This will generate the new certificates.
-
-```
-salt k8s-master-1 state.apply kubernetes.cert.view
-```
-
-Use the output from the kubernetes.cert.view state to place the certificates into the pillar file for your kubernetes cluster.
+Use the output from the kubernetes.certs.generate state to place the new certificates into the pillar file for your kubernetes cluster.
 
 ```
 salt k8s-master-1 saltutil.refresh_pillar
@@ -90,12 +66,12 @@ At this point, the first kubernetes master has the new certificates and is runni
 
 ```
 salt k8s-master-2 state.apply kubernetes.kubelet.removed
-salt k8s-master-2 state.apply kubernetes.cert.removed
+salt k8s-master-2 state.apply kubernetes.certs.removed
 salt k8s-master-2 saltutil.refresh_pillar
 salt k8s-master-2 state.apply kubernetes.running
 
 salt k8s-master-3 state.apply kubernetes.kubelet.removed
-salt k8s-master-3 state.apply kubernetes.cert.removed
+salt k8s-master-3 state.apply kubernetes.certs.removed
 salt k8s-master-3 saltutil.refresh_pillar
 salt k8s-master-3 state.apply kubernetes.running
 ```

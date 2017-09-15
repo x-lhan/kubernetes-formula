@@ -14,5 +14,12 @@ remove-generated-{{ file }}:
     - name: /srv/kubernetes/{{ file }}
 {% endfor %}
 
-/usr/local/share/ca-certificates/kubernetes-ca.crt:
-  file.absent
+remove-kubernetes-certificate:
+  file.absent:
+    - name: /usr/local/share/ca-certificates/kubernetes-ca.crt
+
+remove-kubernetes-cert-from-sys-list:
+  cmd.run:
+    - name: update-ca-certificates
+    - require:
+      - file: remove-kubernetes-certificate
