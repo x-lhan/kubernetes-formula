@@ -108,11 +108,6 @@ In cluster:
   4. run `salt 'TARGET_NODE' state.sls kubernetes.running` to apply kubernetes state again
   5. mark node as working status with command `hyperkube kubectl taint node TARGET_NODE evict:NoExecute-` 
 
-### Note for cluster auto-scaler
-
-  * cluster auto-scaler feature rely on cloud provider, for AWS please reference [here](https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/aws/README.md)
-  * To enable auto-scaler make sure pillar data `kubernetes:cluster_autoscaler:enabled` is true(Default is false) and set `kubernetes:cluster_autoscaler:params` as needed. 
-
 ### Note for removing cni network plugin
   1. evict all scheduled pods by using command `hyperkube kubectl taint node TARGET_NODE evict=true:NoExecute`
   2. remove kubelet service to prevent re-apply old cni configuration by applying `kubernetes.kubelet.removed` state
