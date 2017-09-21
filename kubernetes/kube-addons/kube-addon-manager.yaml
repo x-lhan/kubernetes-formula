@@ -1,3 +1,4 @@
+{% from "kubernetes/map.jinja" import config with context %}
 apiVersion: v1
 kind: Pod
 metadata:
@@ -18,6 +19,9 @@ spec:
     - /bin/bash
     - -c
     - /opt/kube-addons.sh 1>>/var/log/kube-addon-manager.log 2>&1
+    env:
+    - name: TEST_ADDON_CHECK_INTERVAL_SEC
+      value: "{{ config.addon_check_interval_sec }}"
     resources:
       requests:
         cpu: 5m

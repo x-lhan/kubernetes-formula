@@ -1,0 +1,48 @@
+{% from "kubernetes/map.jinja" import config with context %}
+
+apiVersion: batch/v2alpha1
+kind: CronJob
+metadata:
+  name: etcd-snapshot-job
+  namespace: kube-system
+  labels:
+    kubernetes.io/cluster-service: "true"
+    addonmanager.kubernetes.io/mode: Reconcile
+spec:
+  schedule: "{{ config.etcd_snapshot_schedule }}"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          hostNetwork: true
+          containers:
+          - name: etcd-snapshot-job-worker
+            image: "gcr.io/google_containers/etcd:{{ config.etcd_version }}"
+            command:
+            - /bin/sh
+            - -c
+            - >
+              date;
+              etcdctl --endpoints=http://127.0.0.1:2379 snapshot save /mnt/etcd/snapshot.db;
+              etcdctl snapshot status /mnt/etcd/snapshot.db;
+              etcdctl --endpoints=http://127.0.0.1:4002 snapshot save /mnt/etcd/snapshot-events.db;
+              etcdctl snapshot status /mnt/etcd/snapshot-events.db
+              
+            env:
+            - name: ETCDCTL_API
+              value: "3"
+            volumeMounts:
+            - name: snapshot-store
+              mountPath: /mnt/etcd
+          volumes:
+          - name: snapshot-store
+            persistentVolumeClaim:
+              claimName: kube-etcd-snapshot-pvc
+          restartPolicy: Never
+          nodeSelector:
+            {% if config.etcd_snapshot_hostname is defined %}
+            kubernetes.io/hostname: {{ config.etcd_snapshot_hostname }}
+            {% else %}
+            failure-domain.beta.kubernetes.io/zone: {{ config.etcd_snapshot_zone }}
+            node-role.kubernetes.io: master
+            {% endif %}

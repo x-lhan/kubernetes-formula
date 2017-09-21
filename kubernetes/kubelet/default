@@ -20,9 +20,12 @@
 
 {% set debugging_handlers = "--enable-debugging-handlers=true" -%}
 {% set register_with_taints = "" %}
+{% set node_labels = "" %}
 
 {% if config.master is defined -%}
 
+    {% set node_labels = "node-role.kubernetes.io=master" %}
+    
 
     # Unless given a specific directive, disable registration for the kubelet
     # running on the master.
@@ -48,6 +51,18 @@
 
 {% if register_with_taints|length > 0 %}
   {% set register_with_taints = "--register-with-taints=" + register_with_taints %}
+{% endif %}
+
+{% if config.node_labels is defined -%}
+{% if node_labels|length > 0 %}
+  {% set node_labels = node_labels + "," + config.node_labels|join(",") -%}
+{% else %}
+  {% set node_labels = config.node_labels|join(",") -%}
+{% endif %}
+{% endif -%}
+
+{% if node_labels|length > 0 %}
+  {% set node_labels = "--node-labels=" + node_labels %}
 {% endif %}
 
 {% set cloud_provider = "" -%}
@@ -181,11 +196,6 @@
 {% set enable_custom_metrics = "" -%}
 {% if config['enable_custom_metrics'] is defined -%}
   {% set enable_custom_metrics="--enable-custom-metrics=" + config['enable_custom_metrics'] %}
-{% endif -%}
-
-{% set node_labels = "" %}
-{% if config['node_labels'] is defined -%}
-  {% set node_labels="--node-labels=" + config['node_labels'] %}
 {% endif -%}
 
 {% set eviction_hard = "" %}

@@ -150,8 +150,8 @@
 {% endif -%}
 
 {% set runtime_config = "" -%}
-{% if grains.runtime_config is defined -%}
- {% set runtime_config = "--runtime-config=" + grains.runtime_config -%}
+{% if config.runtime_config is defined -%}
+ {% set runtime_config = "--runtime-config=" + config.runtime_config -%}
 {% endif -%}
 
 {% set feature_gates = "" -%}

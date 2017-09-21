@@ -91,12 +91,33 @@ kubernetes:
     kube_proxy: DFvQ8GelB7afH3wClC9romaMPhquyyEe
     kubelet:  7bN5hJ9JD4fKjnFTkUKsvVNfuyEddw3r
   
+  # addons
+  addon_check_interval_sec: 300
+  
   # storage class
   enable_default_storage_class: False
   default_storage_class_zones: ""
   
   # etcd
-  keep_host_etcd: False
+  etcd_install_base_url: "https://github.com/coreos/etcd/releases/download"
+  etcd_version: 3.0.17
+  # Etcd storage backend. support etcd2 and etcd3. Default to etcd3. 
+  # Please note: etcd2 did not support snapshot feature.
+  storage_backend: etcd3
+  
+  # If enabled, a kubernetes cronjob will be create to take etcd cluster snapshot on a single master node.
+  # Required to define pillar data "etcd_snapshot_zone" (Pick any master node in the AZ)
+  # or "etcd_snapshot_hostname" to narrow down which master host to run.
+  # Required "storage_backend" to be "etcd3".(Since snapshot is V3 only feature)
+  # Required "runtime_config" to include "batch/v2alpha1=true"
+  enable_etcd_snapshot: False
+  # (Optional) which storage_class this snapshot pvc related. Default to gp2
+  # if did not override please enable_default_storage_class
+  etcd_snapshot_storage_classname: gp2
+  # (Optional) snapshot volume size. Default to 1Gi
+  etcd_snapshot_disk_size: 1Gi
+  # (Optional) snapshot taken cronjob defination. Default to daily run at 06:02AM UTC
+  etcd_snapshot_schedule: "02 6 * * *"
   
   # dashboard
   enable_cluster_ui: True
@@ -115,10 +136,12 @@ kubernetes:
   dns_domain: cluster.local
   federations_domain_map: ""
   
-  # registry(require cloud provider support and enable_default_storage_class)
+  # registry(require cloud provider support; see cluster_registry_storage_classname below)
   enable_cluster_registry: False
   registry_server: 10.254.50.50
   cluster_registry_disk_size: 1Gi
+  # (Optinal) which storage_class this registry pvc related. Default to gp2.
+  # if did not override please enable_default_storage_class
   cluster_registry_storage_classname: gp2
 
       

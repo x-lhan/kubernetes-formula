@@ -152,6 +152,26 @@ addon-dir-create:
     - makedirs: True
 {% endif %}
 
+{% if config.enable_etcd_snapshot and config.storage_backend == 'etcd3' %}
+/etc/kubernetes/addons/etcd-snapshot/etcd-snapshot-pvc.yaml:
+  file.managed:
+    - source: salt://kubernetes/kube-addons/etcd-snapshot/etcd-snapshot-pvc.yaml
+    - template: jinja
+    - user: root
+    - group: root
+    - file_mode: 644
+    - makedirs: True
+/etc/kubernetes/addons/etcd-snapshot/etcd-snapshot-job.yaml:
+  file.managed:
+    - source: salt://kubernetes/kube-addons/etcd-snapshot/etcd-snapshot-job.yaml
+    - template: jinja
+    - user: root
+    - group: root
+    - file_mode: 644
+    - makedirs: True
+
+{% endif %}
+
 {% if config.enable_cluster_ui is defined and config.enable_cluster_ui %}
 /etc/kubernetes/addons/dashboard:
   file.recurse:
@@ -196,6 +216,7 @@ addon-dir-create:
 
 /etc/kubernetes/manifests/kube-addon-manager.yaml:
   file.managed:
+    - template: jinja
     - source: salt://kubernetes/kube-addons/kube-addon-manager.yaml
     - user: root
     - group: root

@@ -8,6 +8,7 @@
 {% endif -%}
 {% set host_ip = grains.get("ip_interfaces").get(config.bind_iface)[0] %}
 {% set cluster_state = (grains.get('initial_etcd_cluster_state') or 'new') -%}
+
 {% set etcd_cluster = '' -%}
 {# We use vars dictionary to pass variables set inside the for loop, because jinja defines new variables inside the for loop that hide variables from the outside. #}
 {% set vars = {'etcd_cluster': ''} -%}
@@ -20,7 +21,7 @@
 {% endfor -%}
 {% set etcd_cluster = vars.etcd_cluster -%}
 {% set quota_bytes = '' -%}
-{% if config.get('storage_backend', 'etcd3') == 'etcd3' -%}
+{% if config.storage_backend == 'etcd3' -%}
   {% set quota_bytes = '--quota-backend-bytes=4294967296' -%}
 {% endif -%}
 {% set srv_kube_path = "/srv/kubernetes" -%}
@@ -37,7 +38,7 @@
 "containers":[
     {
     "name": "etcd-container",
-    "image": "gcr.io/google_containers/etcd:{{ config.get('etcd_docker_tag', '3.0.17') }}",
+    "image": "gcr.io/google_containers/etcd:{{ config.etcd_version }}",
     "resources": {
       "requests": {
         "cpu": {{ cpulimit }}
@@ -46,11 +47,11 @@
     "command": [
               "/bin/sh",
               "-c",
-              "if [ -e /usr/local/bin/migrate-if-needed.sh ]; then /usr/local/bin/migrate-if-needed.sh 1>>/var/log/etcd{{ suffix }}.log 2>&1; fi; /usr/local/bin/etcd --name etcd-{{ host_ip|replace('.','-') }} --listen-peer-urls {{ etcd_protocol }}://{{ host_ip }}:{{ server_port }} --initial-advertise-peer-urls {{ etcd_protocol }}://{{ host_ip }}:{{ server_port }} --advertise-client-urls http://127.0.0.1:{{ port }} --listen-client-urls http://127.0.0.1:{{ port }} {{ quota_bytes }} --data-dir /var/etcd/data{{ suffix }} --initial-cluster-token {{cluster_name}} --initial-cluster-state {{ cluster_state }} --initial-cluster {{ etcd_cluster }} {{ etcd_creds }} 1>>/var/log/etcd{{ suffix }}.log 2>&1"
+              "/usr/local/bin/etcd --name etcd-{{ host_ip|replace('.','-') }} --listen-peer-urls {{ etcd_protocol }}://{{ host_ip }}:{{ server_port }} --initial-advertise-peer-urls {{ etcd_protocol }}://{{ host_ip }}:{{ server_port }} --advertise-client-urls http://127.0.0.1:{{ port }} --listen-client-urls http://127.0.0.1:{{ port }} {{ quota_bytes }} --data-dir /var/etcd/data{{ suffix }} --initial-cluster-token {{cluster_name}} --initial-cluster-state {{ cluster_state }} --initial-cluster {{ etcd_cluster }} {{ etcd_creds }} 1>>/var/log/etcd{{ suffix }}.log 2>&1"
             ],
     "env": [
       { "name": "TARGET_STORAGE",
-        "value": "{{ config.get('storage_backend', 'etcd3') }}"
+        "value": "{{ config.storage_backend }}"
       },
       { "name": "TARGET_VERSION",
         "value": "{{ config.get('etcd_version', '3.0.17') }}"
