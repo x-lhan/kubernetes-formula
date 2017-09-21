@@ -125,11 +125,6 @@ kubernetes:
   # rescheduler
   enable_rescheduler: True
   
-  # cluster_autoscaler
-  cluster_autoscaler: 
-    enabled: False
-    params: []
-  
   # dns
   enable_cluster_dns: True
   dns_server: 10.254.254.254

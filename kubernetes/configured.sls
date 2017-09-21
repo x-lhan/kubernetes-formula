@@ -20,9 +20,6 @@ include:
   - .kube-controller-manager
   - .kube-scheduler
   - .kube-addons
-{% if config.cluster_autoscaler.enabled %}
-  - .cluster-autoscaler
-{% endif %}
 {% if config.enable_rescheduler %}
   - .rescheduler
 {% endif %}
