@@ -14,7 +14,7 @@ include:
 {% endif %}
 
 {%- if config.master is defined %}
-  - .cert.configured
+  - .certs.present
   - .etcd.configured
   - .kube-apiserver
   - .kube-controller-manager

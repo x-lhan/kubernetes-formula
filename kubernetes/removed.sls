@@ -1,7 +1,7 @@
 include:
   - .kubelet.removed
   - .cni.removed
-  - .cert.removed
+  - .certs.removed
 
 # remove all manifests and addons  
 /etc/kubernetes:
