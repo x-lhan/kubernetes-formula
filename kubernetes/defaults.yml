@@ -75,8 +75,7 @@ kubernetes:
     # If true, api_server will be able to exec/log like pool node using kubectl. Default to false
     debugging_handlers: false
   
-  # certificates sans
-  master_extra_sans: "IP:10.254.0.1,DNS:kubernetes,DNS:kubernetes.default,DNS:kubernetes.default.svc,DNS:kubernetes.default.svc.cluster.local"
+  # certificates
   certs_files:
     - 'ca.crt'
     - 'server.key'

@@ -1,4 +1,6 @@
 {% set bind_iface = eth0 %}
+{% set cluster_tag = "default" %}
+{% set pki_path = "/var/salt/k8s-helper/pki/" + cluster_tag + "/" %}
 
 mine_functions:
   network.internal_ip:
@@ -6,7 +8,7 @@ mine_functions:
     - 'ip_interfaces:{{ bind_iface }}:0'
 
 kubernetes:
-  k8s_env: defaults
+  k8s_env: {{ cluster_tag }}
   # scope master/pool nodes by minion_id
   {% if grains['id'].startswith('k8s-master') %}
   master: True
@@ -23,8 +25,17 @@ kubernetes:
     kube_proxy: REPLACE_ME_WITH_BASE64_TOKEM_FOR_KUBE_PROXY
     kubelet:  REPLACE_ME_WITH_BASE64_TOKEM_FOR_KUBELET
   
-  # please use "kuberentes.cert.configured" and "kuberentes.cert.view" state to fill this part
-  # or reuse existing certs
+  # please use the k8s-helper.generate_certs runner to generate the certificates
   certs:
+    "ca.crt": |
+      {{ salt.cmd.run("cat " + pki_path + "ca.crt") | indent(8) }}
+    "kubecfg.crt": |
+      {{ salt.cmd.run("cat " + pki_path + "kubecfg.crt") | indent(8) }}
+    "kubecfg.key": |
+      {{ salt.cmd.run("cat " + pki_path + "kubecfg.key") | indent(8) }}
+    "server.cert": |
+      {{ salt.cmd.run("cat " + pki_path + "server.crt") | indent(8) }}
+    "server.key": |
+      {{ salt.cmd.run("cat " + pki_path + "server.key") | indent(8) }}
 
   # Please reference default.yml file for more configurable pillar data 

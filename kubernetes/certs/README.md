@@ -15,9 +15,57 @@ If you want to learn more, please take a look at the kubernetes documentation. B
 
 - **present** - puts the certificates stored in the pillar in the right places
 - **removed** - removes the certificates from the file system
-- **generate** - generates new certificates and displays them in a pillar suitable format
 
 More information can be gathered by reading the states, they are fairly straightforward.
+
+## Relevant Runners
+
+- **k8s-helper.generate_certs** - generates certificates necessary for secure system communication and stores them on the salt master's file system so they can be included in the pillar.
+
+##Installing Certificates into a New Cluster
+
+You'll need to generate new certificates and place them into your kubernetes pillar file. Using the k8s-helper runner, you can generate the certificates on the salt master and include those certificates in the pillar.
+
+```
+salt-run k8s-helper.generate_certs cluster_tag="default" api_service_address="10.254.0.1" api_server_fqdn="kubernetes.api"
+```
+
+k8s-helper.generate\_certs has a few arguments that can be passed to it, but they all have defaults (shown in the parentheses) that cover the normal case. Below are
+
+* cluster\_tag ("default") - identifies which cluster the certificates are being created for
+* api\_service\_address ("10.254.0.1") - the service address the api-server will use
+* api\_server\_fqdn ("kubernetes.api") - the api-server fqdn (used as a SAN)
+* force_regen (False) - Will force generation of the certificates, even if a previous set exists
+
+The new certificates and keys will be in the following folder if you used "default" as the cluster_tag.
+
+```
+/var/salt/k8s-helper/pki/default/...
+```
+
+Again, assuming a cluster_tag of "default", you can include the files in the pillar by doing the following:
+
+```
+{% set cluster_tag = "default" %}
+{% set pki_path = "/var/salt/k8s-helper/pki/" + cluster_tag + "/" %}
+
+kubernetes:
+  k8s_env: {{ cluster_tag }}
+  certs:
+    "ca.crt": |
+      {{ salt.cmd.run("cat " + pki_path + "ca.crt") | indent(8) }}
+    "kubecfg.crt": |
+      {{ salt.cmd.run("cat " + pki_path + "kubecfg.crt") | indent(8) }}
+    "kubecfg.key": |
+      {{ salt.cmd.run("cat " + pki_path + "kubecfg.key") | indent(8) }}
+    "server.cert": |
+      {{ salt.cmd.run("cat " + pki_path + "server.crt") | indent(8) }}
+    "server.key": |
+      {{ salt.cmd.run("cat " + pki_path + "server.key") | indent(8) }}
+  ...
+...
+```
+
 
 ## How to Replace Existing Certificates With New Ones
 
@@ -37,46 +85,17 @@ k8s-node-2
 k8s-node-3
 ```
 
-Pick a master you'll use to regenerate the certificates
+First, you'll want to generate the certificates on the salt master. Follow the steps in the previous section titled [Installing Certificates into a New Cluster](#installing-certificates-into-a-new-cluster)
+
+**CAUTION:** the kubernetes.kubelet.removed state ran below will remove all the containers running on the master. Because it's a kubernetes master, it'll likely only be running kubernetes specific system containers, so this shouldn't be a big issue.
 
 ```
-salt k8s-master-1 state.apply kubernetes.kubelet.removed
+salt k8s-master* saltutil.refresh_pillar
+salt k8s-master* state.apply kubernetes.kubelet.removed
+salt k8s-master* state.apply kubernetes.running
 ```
 
-**CAUTION:** This step will remove all the containers running on the master. Because it's a kubernetes master, it'll likely only be running kubernetes specific system containers, so this shouldn't be a big issue.
-
-```
-salt k8s-master-1 state.apply kubernetes.certs.removed
-```
-
-This will remove the certificate files on this kubernetes master.
-
-```
-salt k8s-master-1 state.apply kubernetes.certs.generate
-```
-
-Use the output from the kubernetes.certs.generate state to place the new certificates into the pillar file for your kubernetes cluster.
-
-```
-salt k8s-master-1 saltutil.refresh_pillar
-salt k8s-master-1 state.apply kubernetes.running
-```
-
-At this point, the first kubernetes master has the new certificates and is running properly. Now, you'll need to get the other kubernetes masters setup with the new certificates.
-
-```
-salt k8s-master-2 state.apply kubernetes.kubelet.removed
-salt k8s-master-2 state.apply kubernetes.certs.removed
-salt k8s-master-2 saltutil.refresh_pillar
-salt k8s-master-2 state.apply kubernetes.running
-
-salt k8s-master-3 state.apply kubernetes.kubelet.removed
-salt k8s-master-3 state.apply kubernetes.certs.removed
-salt k8s-master-3 saltutil.refresh_pillar
-salt k8s-master-3 state.apply kubernetes.running
-```
-
-The above steps should get all your other kubernetes masters setup with the new certificates
+At this point, all the kubernetes masters should have the new certificates and should be running properly. Now, you'll need to get the kubernetes nodes setup with the new certificates.
 
 ```
 salt k8s-node* saltutil.refresh_pillar

@@ -1,3 +1,6 @@
+{% set cluster_tag = "default" %}
+{% set pki_path = "/var/salt/k8s-helper/pki/" + cluster_tag + "/" %}
+
 mine_functions:
   network.internal_ip:
     - mine_function: grains.get
@@ -9,7 +12,7 @@ mine_functions:
 
 # default k8s cluster environment.
 kubernetes:
-  k8s_env: defaults
+  k8s_env: {{ cluster_tag }}
   # scope master/pool nodes by minion_id
   {% if grains['id'].startswith('k8s-master') %}
   master: True
@@ -43,8 +46,18 @@ kubernetes:
   pool: True
   {% endif %}
   
-  # please use "kuberentes.cert.configured" and "kuberentes.cert.view" state to fill this part
+  # please use the k8s-helper.generate_certs runner to generate the certificates
   certs:
+    "ca.crt": |
+      {{ salt.cmd.run("cat " + pki_path + "ca.crt") | indent(8) }}
+    "kubecfg.crt": |
+      {{ salt.cmd.run("cat " + pki_path + "kubecfg.crt") | indent(8) }}
+    "kubecfg.key": |
+      {{ salt.cmd.run("cat " + pki_path + "kubecfg.key") | indent(8) }}
+    "server.cert": |
+      {{ salt.cmd.run("cat " + pki_path + "server.crt") | indent(8) }}
+    "server.key": |
+      {{ salt.cmd.run("cat " + pki_path + "server.key") | indent(8) }}
   
   # which host interface to bind, default eth0. when changed please make sure mine funcation "network.internal_ip" is also changed
   bind_iface: eth1
