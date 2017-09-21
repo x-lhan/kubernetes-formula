@@ -1,0 +1,104 @@
+{% from "kubernetes/map.jinja" import config with context %} 
+ 
+{% if config.cluster_autoscaler.enabled %} 
+{% set cloud_config = "" -%} 
+{% set cloud_config_mount = "" -%} 
+{% set cloud_config_volume = "" -%}
+{% if grains.cloud is defined -%}
+  {% set cloud_config = "--cloud-provider=" + grains.cloud -%} 
+   
+  {% if grains.cloud_config is defined %}
+  {% set cloud_config = cloud_config + " --cloud-config=" + grains.cloud_config -%}
+  {% set cloud_config_mount = "{\"name\": \"cloudconfigmount\",\"mountPath\": \"" + grains.cloud_config + "\", \"readOnly\": true}," -%} 
+  {% set cloud_config_volume = "{\"name\": \"cloudconfigmount\",\"hostPath\": {\"path\": \"" + grains.cloud_config + "\"}}," -%} 
+  {% endif %}
+   
+{% endif -%} 
+ 
+{
+    "kind": "Pod", 
+    "apiVersion": "v1",
+    "metadata": {
+        "name": "cluster-autoscaler",
+        "namespace": "kube-system",
+        "labels": {
+            "tier": "cluster-management",
+            "component": "cluster-autoscaler"
+        }
+    }, 
+    "spec": {
+        "hostNetwork": true, 
+        "containers": [
+            {
+                "name": "cluster-autoscaler",
+                "image": "gcr.io/google_containers/cluster-autoscaler:v0.6.1", 
+                "command": [ 
+                    "./run.sh",
+                    "--kubernetes=http://127.0.0.1:8080?inClusterConfig=f",
+                    "--v=4", 
+                    "--logtostderr=true",
+                    "--write-status-configmap=true", 
+                    {% for param in config.cluster_autoscaler.params %}"{{param}}",
+                    {% endfor %} 
+                    "{{cloud_config}}" 
+ 
+                ], 
+                "env": [ 
+                    {
+                        "name": "LOG_OUTPUT",
+                        "value": "/var/log/cluster-autoscaler.log" 
+                    }
+                ], 
+                "resources": { 
+                    "requests": {
+                        "cpu": "20m",
+                        "memory": "300Mi"
+                    }
+                }, 
+                "volumeMounts": [
+                    {{cloud_config_mount}} 
+                    {
+                        "name": "ssl-certs", 
+                        "readOnly": true,
+                        "mountPath": "/etc/ssl/certs"
+                    }, 
+                    {
+                        "name": "usrsharecacerts", 
+                        "readOnly": true,
+                        "mountPath": "/usr/share/ca-certificates"
+                    }, 
+                    {
+                        "name": "logfile", 
+                        "mountPath": "/var/log/cluster-autoscaler.log",
+                        "readOnly": false
+                    }
+                ], 
+                "terminationMessagePath": "/dev/termination-log",
+                "imagePullPolicy": "IfNotPresent"
+            }
+        ], 
+        "volumes": [ 
+            {{cloud_config_volume}}
+            {
+                "name": "ssl-certs", 
+                "hostPath": {
+                    "path": "/etc/ssl/certs" 
+                }
+            }, 
+            {
+                "name": "usrsharecacerts", 
+                "hostPath": {
+                    "path": "/usr/share/ca-certificates" 
+                }
+            }, 
+            {
+                "name": "logfile", 
+                "hostPath": {
+                    "path": "/var/log/cluster-autoscaler.log"
+                }
+            }
+        ], 
+        "restartPolicy": "Always"
+    }
+}
+{% endif %}

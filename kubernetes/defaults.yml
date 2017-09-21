@@ -125,6 +125,11 @@ kubernetes:
   # rescheduler
   enable_rescheduler: True
   
+  # cluster_autoscaler
+  cluster_autoscaler: 
+    enabled: False
+    params: []
+  
   # dns
   enable_cluster_dns: True
   dns_server: 10.254.254.254
@@ -139,4 +144,3 @@ kubernetes:
   # if did not override please enable_default_storage_class
   cluster_registry_storage_classname: gp2
 
-      
