@@ -55,3 +55,8 @@ Kubernetes cluster rely on etcd to store its state. So please first ensure etcd 
   8. Clean up after mess.(`umount /dev/xvdbd` and `aws ec2 detach-volume --volume-id vol-0e1c163e3b3; aws ec2 delete-volume --volume-id vol-0e1c163e3b3`) 
   
   After apply the above steps to all master node. Apply `kubernetes.running` state to all master node, then kubernetes cluster should be restored.
+  
+## Reference
+
+1. [etcd official cluster recovery guide](https://github.com/coreos/etcd/blob/master/Documentation/op-guide/recovery.md)
+2. [kubernetes restoring an etcd cluster section](https://kubernetes.io/docs/tasks/administer-cluster/configure-upgrade-etcd/)
