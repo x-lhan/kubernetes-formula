@@ -188,3 +188,20 @@ View the configured certificates as configurable pillar data `kubernetes:certs`
 ### kubernetes.cert.removed
 
 Remove all kubernetes cluster certificate
+
+## Cluster authentication/authorization
+
+### Authentication
+
+With the current setup, kuberenetes service account token authentication are enabled by default to support critical component talk back to api-server(currently include canel/flannel; dns and dashboard). There are also several ways to authenticate user access that is supported by this formula:
+
+1. X509 client cert: Enabled by default. The `/srv/kubernetes/ca.crt` is used to validate client certificates presented to the API server. If a client certificate is presented and verified, the common name of the subject is used as the user name for the request.
+2. HTTP basic auth: in place but did not enable by default. To enable please provide pillar data `kubernetes:admin:password`(also if want to override admin username `kubernetes:admin:username`)
+3. bearer token: Enabled by default. Currently only support 3 tokens(admin, kubelet, kube-proxy)
+4. webhook token authentication: in place but not enable by default. To enable please provide grain data `webhook_authorization_config` with the path to webhook kubeconfig file. There is a [third-party LDAP integration](https://github.com/torchbox/kube-ldap-authn) can be implemented with webhook.
+
+More detail please reference [Kubernetes official authenticating topic](https://kubernetes.io/docs/admin/authentication/)
+
+### Authorization
+
+Currently two authorization mode are supported: Attribute-based access control (ABAC) and Webhook. ABAC is enabled by default; To modify configuration please modify `abac-authz-policy.jsonl` under `kube-apiserver` directory. For more information please reference [Kubernetes official authorization topic](https://kubernetes.io/docs/admin/authorization/).
