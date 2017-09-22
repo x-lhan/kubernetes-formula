@@ -11,6 +11,14 @@ If you want to learn more, please take a look at the kubernetes documentation. B
 - [Managing TLS in a cluster](https://kubernetes.io/docs/tasks/tls/managing-tls-in-a-cluster/)
 - [Secrets](https://kubernetes.io/docs/concepts/configuration/secret/)
 
+## Prerequisites
+
+You need the M2Crypto library in order to generate certificates using the k8s-helper.generate_certs runner. On Ubuntu, you can install this using apt-get:
+
+```
+apt-get install python-dev python-m2crypto
+```
+
 ## Relevant States
 
 - **present** - puts the certificates stored in the pillar in the right places

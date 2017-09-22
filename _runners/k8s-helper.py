@@ -3,6 +3,13 @@ import datetime
 import os
 from shutil import rmtree
 
+# Import 3rd Party Libs
+try:
+    import M2Crypto
+    HAS_M2 = True
+except ImportError:
+    HAS_M2 = False
+
 def generate_certs(cluster_tag="default", api_service_address="10.254.0.1", 
                    api_server_fqdn="kubernetes.api", force_regen=False):
   '''  
@@ -20,6 +27,11 @@ def generate_certs(cluster_tag="default", api_service_address="10.254.0.1",
   kubecfg.key - the kubernetes client access private key
   kubecfg.csr - the kubernetes client access certificate signing request
   kubecfg.crt - the kubernetes client access certificate signed by the ca
+
+  PRE-REQUISITES
+    you need the M2Crypto library in order to generate certificates using the 
+    x509 salt module. On Ubuntu, you can install this using apt-get:
+    apt-get install python-dev python-m2crypto
 
   cluster_tag
     (string) - The cluster_tag to identify which cluster these certificates are
@@ -41,6 +53,12 @@ def generate_certs(cluster_tag="default", api_service_address="10.254.0.1",
     (String) - A list of the results for each file generated.
   '''
   
+  if not HAS_M2:
+    return ("You must install M2Crypto in order to generate certificates " +
+            "using the x509 module. In Ubuntu, you can run the following " + 
+            "command:\n" +
+            "apt-get install python-dev python-m2crypto")
+
   # Path where the certificates will be placed
   pki_path = "/var/salt/k8s-helper/pki/" + cluster_tag + "/"
 
