@@ -129,8 +129,8 @@ In cluster:
           # enable_default_storage_class: true
           # default_storage_class_zones: "us-west-1a,us-west-1c[,ADD_SUPPORT_ZONES]"
           
-          # (optional) override default registry server(10.254.50.50)
-          # registry_server: 10.254.50.50 
+          # (optional) override derived registry server ip (3rd ip address in service_ip_cluster_range, 10.254.0.3)
+          # registry_server: 10.254.0.3 
       ```    
   * To stop registry, please use salt to remove `/etc/kubernetes/addons/registry/registry-rc.yaml` file in all master node. (If intend to remove the *persistent volume* as well, remove `/etc/kubernetes/addons/registry/` directory instead)
   * To push image from outside of cluster(e.g. linux workstation, there is a [bug](https://github.com/moby/moby/issues/29608) prevent osx client), the following command can be used to forward the local `5000` port to registry pod `5000` port:
@@ -140,7 +140,7 @@ In cluster:
         docker tag IMAGE_ID localhost:5000/IMAGE_NAME
         docker push localhost:5000/IMAGE_NAME
       ```
-  * After configured docker daemon to accept `10.254.50.50:5000` as insecure registry. Image within registry can be consumed like `image: 10.254.50.50:5000/IMAGE_NAME` by kubelet. 
+  * After configured docker daemon to accept `10.254.0.3:5000` as insecure registry. Image within registry can be consumed like `image: 10.254.0.3:5000/IMAGE_NAME` by kubelet. 
    
 
 ## Support states

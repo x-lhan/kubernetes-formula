@@ -1,5 +1,5 @@
 {% set version = "v1.7.0" %}
-{% set k8s_env = "defaults" %}
+{% set k8s_env = "default" %}
 {% if grains['k8s_env'] is defined %}
 {% set k8s_env = grains['k8s_env'] %}
 {% endif %}
@@ -123,16 +123,24 @@ kubernetes:
   
   # rescheduler
   enable_rescheduler: True
-  
+
   # dns
   enable_cluster_dns: True
-  dns_server: 10.254.254.254
+  # the dns_server ip address is derived based on the service_cluster_ip_range. 
+  # Due to this reliance, you can see how it's derived in the map.jinja file.
+  # You can still manually set the dns_server ip address, make sure it's in the
+  # service_cluster_ip_range
+  # dns_server: 
   dns_domain: cluster.local
   federations_domain_map: ""
-  
+
   # registry(require cloud provider support; see cluster_registry_storage_classname below)
   enable_cluster_registry: False
-  registry_server: 10.254.50.50
+  # the registry_server ip address is derived based on the service_cluster_ip_range. 
+  # Due to this reliance, you can see how it's derived in the map.jinja file.
+  # You can still manually set the registry_server ip address, make sure it's in the
+  # service_cluster_ip_range
+  # registry_server: 
   cluster_registry_disk_size: 1Gi
   # (Optinal) which storage_class this registry pvc related. Default to gp2.
   # if did not override please enable_default_storage_class

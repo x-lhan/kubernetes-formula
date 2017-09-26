@@ -1,3 +1,12 @@
 {% import_yaml "kubernetes/defaults.yml" as defaults %}
 
 {% set config = salt['pillar.get']('kubernetes', default=defaults['kubernetes'], merge=True) %}
+
+
+{% if not config.get('dns_server') %}
+  {% do config.update({'dns_server': salt['ip_helper.get_ip_from_range'](config['service_cluster_ip_range'], 2)}) %}
+{% endif %}
+
+{% if not config.get('registry_server') %}
+  {% do config.update({'registry_server': salt['ip_helper.get_ip_from_range'](config['service_cluster_ip_range'], 3)}) %}
+{% endif %}
