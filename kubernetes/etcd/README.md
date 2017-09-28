@@ -50,7 +50,7 @@ Kubernetes cluster rely on etcd to store its state. So please first ensure etcd 
   3. Create an volume from the above snapshot within the same availability zone of the target host. (`aws ec2 create-volume --region us-east-1 --availability-zone us-east-1a --snapshot-id snap-066877671789bd71b --volume-type io1 --iops 1000`)
   4. Attach the above volume to target host. (`aws ec2 attach-volume --volume-id vol-0e1c163e3b3 --instance-id i-02603827c9c --device /dev/xvdbd`)
   5. Mount the volume to `/mnt/etcd` (`mkdir /mnt/etcd; mount /dev/xvdbd /mnt/etcd`) 
-  6. (Optional) Make sure `/mnt/etcd/snapshot.db` and `/mnt/etcd/snapshot-events.db` exists; etcd snapshot status can be checked with command `etcdctl -write-out=table snapshot status /mnt/etcd/snapshot.db`
+  6. (Optional) Make sure `/mnt/etcd/snapshot.db` and `/mnt/etcd/snapshot-events.db` exists; etcd snapshot status can be checked with command ` ETCDCTL_API=3 etcdctl --write-out=table snapshot status /mnt/etcd/snapshot.db`
   7. Apply `kubernetes.etcd.restored` state to target host.
   8. Clean up after mess.(`umount /dev/xvdbd` and `aws ec2 detach-volume --volume-id vol-0e1c163e3b3; aws ec2 delete-volume --volume-id vol-0e1c163e3b3`) 
   
