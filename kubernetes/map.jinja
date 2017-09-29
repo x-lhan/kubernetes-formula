@@ -2,11 +2,39 @@
 
 {% set config = salt['pillar.get']('kubernetes', default=defaults['kubernetes'], merge=True) %}
 
+{% if not config.get('k8s_env') %}
+    {% do config.update({'k8s_env': 'default'}) %}
+{% endif %}
 
+# Set defaults for items that require the mine and cluster identifier
+{% if not config.get('master_ips') and not config.get('master_nodes') and not config.get('pool_nodes') %}
+  {% set master_nodes = salt['mine.get']('I@kubernetes:master and I@kubernetes:k8s_env:' + config['k8s_env'], 'network.internal_ip', 'compound') -%}
+  {% set pool_nodes = salt['mine.get']('I@kubernetes:pool and I@kubernetes:k8s_env:'+ config['k8s_env'], 'network.internal_ip', 'compound') -%}
+
+  {% do config.update({'master_ips': master_nodes.values()}) %}
+
+  # The api_server ip address could be set to the load balancer ip address, so
+  # this could rationally be defined while the other items are not. We still
+  # want to give it defaults in the case where it isn't defined
+  {% if not config.api_server.get('ip') %}
+    {% do config.api_server.update({'ip': master_nodes.values()[0]}) %}
+  {% endif %}
+  {% do config.update({'master_nodes': master_nodes}) %}
+  {% do config.update({'pool_nodes': pool_nodes}) %}
+{% elif config.get('master_ips') and config.api_server.get('ip') and config.get('master_nodes') and config.get('pool_nodes') %}
+  # Do nothing, all required items are defined
+{% else %}
+  {{ salt.test.exception('you must either define all kubernetes:master_ips, kubernetes:api_server:ip, kubernetes:master_nodes and kubernetes:pool_nodes, or none of them!') }}
+{% endif %}
+
+# Configure the dns_server ip address with a rational default if it hasn't been
+# configured by pillar data
 {% if not config.get('dns_server') %}
   {% do config.update({'dns_server': salt['ip_helper.get_ip_from_range'](config['service_cluster_ip_range'], 2)}) %}
 {% endif %}
 
+# Configure the registry_server ip address with a rational default if it hasn't 
+# been configured by pillar data
 {% if not config.get('registry_server') %}
   {% do config.update({'registry_server': salt['ip_helper.get_ip_from_range'](config['service_cluster_ip_range'], 3)}) %}
 {% endif %}

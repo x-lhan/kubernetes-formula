@@ -1,14 +1,6 @@
 {% set version = "v1.7.0" %}
-{% set k8s_env = "default" %}
-{% if grains['k8s_env'] is defined %}
-{% set k8s_env = grains['k8s_env'] %}
-{% endif %}
-{% set master_nodes = salt['mine.get']('I@kubernetes:master and I@kubernetes:k8s_env:' + k8s_env, 'network.internal_ip', 'compound') -%}
-{% set master_ips = master_nodes.values() -%}
-{% set pool_nodes = salt['mine.get']('I@kubernetes:pool and I@kubernetes:k8s_env:'+ k8s_env, 'network.internal_ip', 'compound') -%}
 
 kubernetes:
-  master_ips: {{master_ips}}
 
   # version info
   version: {{ version }}
@@ -60,13 +52,9 @@ kubernetes:
   # If true, override node hostname to use saltstack minion_id and make minion_id resolvable using /etc/hosts file on master node.
   # Please note: in AWS even though hostname is override the nodename is discovered using cloud meta-data instead.
   minion_id_as_hostname: false
-  master_nodes: {{master_nodes}}
-  pool_nodes: {{pool_nodes}}
   
   # kuberentes api_server configurations
   api_server:
-    # when put multiply api_server behind load-balancer, please put load-balancer address here 
-    ip: {{ master_ips[0] }}
     port: 6443
     # when changed, please regenerate cluster certificates
     fqdn: kubernetes.api
@@ -145,5 +133,3 @@ kubernetes:
   # (Optinal) which storage_class this registry pvc related. Default to gp2.
   # if did not override please enable_default_storage_class
   cluster_registry_storage_classname: gp2
-
-      
