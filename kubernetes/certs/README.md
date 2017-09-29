@@ -61,15 +61,15 @@ kubernetes:
   k8s_env: {{ cluster_tag }}
   certs:
     "ca.crt": |
-      {{ salt.cmd.run("cat " + pki_path + "ca.crt") | indent(8) }}
+      {{ salt.cmd.run("cat " + pki_path + "ca.crt") | indent(6) }}
     "kubecfg.crt": |
-      {{ salt.cmd.run("cat " + pki_path + "kubecfg.crt") | indent(8) }}
+      {{ salt.cmd.run("cat " + pki_path + "kubecfg.crt") | indent(6) }}
     "kubecfg.key": |
-      {{ salt.cmd.run("cat " + pki_path + "kubecfg.key") | indent(8) }}
+      {{ salt.cmd.run("cat " + pki_path + "kubecfg.key") | indent(6) }}
     "server.cert": |
-      {{ salt.cmd.run("cat " + pki_path + "server.crt") | indent(8) }}
+      {{ salt.cmd.run("cat " + pki_path + "server.crt") | indent(6) }}
     "server.key": |
-      {{ salt.cmd.run("cat " + pki_path + "server.key") | indent(8) }}
+      {{ salt.cmd.run("cat " + pki_path + "server.key") | indent(6) }}
   ...
 ...
 ```
