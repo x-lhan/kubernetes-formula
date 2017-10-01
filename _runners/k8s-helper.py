@@ -150,7 +150,7 @@ def generate_certs(cluster_tag="default", api_service_address="10.254.0.1",
     "basicConstraints": "CA:FALSE",
     "keyUsage": "Digital Signature",
     "authorityKeyIdentifier": "keyid",
-    "extendedKeyUsage": "TLS Web Server Authentication"
+    "extendedKeyUsage": "TLS Web Client Authentication"
   }
 
   results = []
