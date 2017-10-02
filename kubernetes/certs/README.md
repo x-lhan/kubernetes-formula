@@ -32,7 +32,17 @@ More information can be gathered by reading the states, they are fairly straight
 
 ##Installing Certificates into a New Cluster
 
-You'll need to generate new certificates and place them into your kubernetes pillar file. Using the k8s-helper runner, you can generate the certificates on the salt master and include those certificates in the pillar.
+You'll need to generate new certificates and place them into your kubernetes pillar file. 
+
+First, you'll want to make sure the runner is available to run. The easiest was to do this is to run the following command
+
+```
+salt-run saltutil.sync_all
+```
+
+**IMPORTANT NOTE:** Please make sure to use **salt-run** and not *salt \<target_minion\>*, otherwise the runners will not be synchronized with the master.
+
+Using the k8s-helper runner, you can generate the certificates on the salt master and include those certificates in the pillar.
 
 ```
 salt-run k8s-helper.generate_certs cluster_tag="default" api_service_address="10.254.0.1" api_server_fqdn="kubernetes.api"
