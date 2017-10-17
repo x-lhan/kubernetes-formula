@@ -1,7 +1,6 @@
 {% set version = "v1.7.0" %}
 
 kubernetes:
-
   # version info
   version: {{ version }}
   kube-apiserver_docker_tag: {{ version }}
@@ -14,6 +13,11 @@ kubernetes:
   kube_docker_registry: "gcr.io/google_containers"
   hyperkube_image: gcr.io/google_containers/hyperkube
   flannel_image: "quay.io/coreos/flannel"
+
+  # Automatic detection of a minion running in the AWS cloud
+  {% if grains['uuid'].startswith('ec2') %}
+  cloud: aws
+  {% endif %}
   
   # determine support systemd or not
   {% if grains['oscodename'] in [ 'vivid', 'wily', 'jessie', 'xenial', 'yakkety' ] %}

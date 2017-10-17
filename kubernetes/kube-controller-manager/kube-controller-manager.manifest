@@ -38,26 +38,17 @@
 {% set additional_cloud_config_volume = "{\"name\": \"usrsharessl\",\"hostPath\": {\"path\": \"/usr/share/ssl\"}}, {\"name\": \"usrssl\",\"hostPath\": {\"path\": \"/usr/ssl\"}}, {\"name\": \"usrlibssl\",\"hostPath\": {\"path\": \"/usr/lib/ssl\"}}, {\"name\": \"usrlocalopenssl\",\"hostPath\": {\"path\": \"/usr/local/openssl\"}}," -%}
 {% set srv_kube_path = "/srv/kubernetes" -%}
 {% set service_account_key = "--service-account-private-key-file=/srv/kubernetes/server.key" -%}
-{% if grains.cloud is defined -%}
-  {% if grains.cloud not in ['vagrant', 'photon-controller', 'azure-legacy'] -%}
-    {% set cloud_provider = "--cloud-provider=" + grains.cloud -%}
+{% if config.cloud is defined -%}
+  {% if config.cloud not in ['vagrant', 'photon-controller', 'azure-legacy'] -%}
+    {% set cloud_provider = "--cloud-provider=" + config.cloud -%}
   {% endif -%}
   
-
-  {% if grains.cloud in [ 'openstack' ] and grains.cloud_config is defined -%}
-    {% set cloud_config = "--cloud-config=" + grains.cloud_config -%}
+  {% if config.cloud in [ 'aws', 'gce' ] and config.cloud_config is defined -%}
+    {% set cloud_config = "--cloud-config=" + config.cloud_config -%}
+    {% set cloud_config_mount = "{\"name\": \"cloudconfigmount\",\"mountPath\": \"" + config.cloud_config + "\", \"readOnly\": true}," -%}
+    {% set cloud_config_volume = "{\"name\": \"cloudconfigmount\",\"hostPath\": {\"path\": \"" + config.cloud_config + "\"}}," -%}
   {% endif -%}
-
-  {% if grains.cloud in [ 'aws', 'gce' ] and grains.cloud_config is defined -%}
-    {% set cloud_config = "--cloud-config=" + grains.cloud_config -%}
-    {% set cloud_config_mount = "{\"name\": \"cloudconfigmount\",\"mountPath\": \"" + grains.cloud_config + "\", \"readOnly\": true}," -%}
-    {% set cloud_config_volume = "{\"name\": \"cloudconfigmount\",\"hostPath\": {\"path\": \"" + grains.cloud_config + "\"}}," -%}
-  {% endif -%}
-
-  {% if grains.cloud in ['openstack'] -%}
-    {% set cloud_config_mount = "{\"name\": \"instanceid\",\"mountPath\": \"/var/lib/cloud/data/instance-id\",\"readOnly\": true}," -%}
-    {% set cloud_config_volume = "{\"name\": \"instanceid\",\"hostPath\": {\"path\": \"/var/lib/cloud/data/instance-id\"}}," -%}
-  {% endif -%}
+  
 {% endif -%}
 
 {% set root_ca_file = "--root-ca-file=/srv/kubernetes/ca.crt" -%}

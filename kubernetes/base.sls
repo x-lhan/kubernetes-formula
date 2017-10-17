@@ -2,7 +2,7 @@
 
 # Fix ARP cache issues on AWS by setting net.ipv4.neigh.default.gc_thresh1=0
 # See issue #23395
-{% if grains.get('cloud') == 'aws' %}
+{% if config.cloud is defined and config.cloud == 'aws' %}
 # Work around Salt #18089: https://github.com/saltstack/salt/issues/18089
 # (we also have to give it a different id from the same fix elsewhere)
 99-salt-conf-with-a-different-id:

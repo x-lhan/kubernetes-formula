@@ -11,7 +11,7 @@ docker:
 # On AWS, we use a trick now... We don't start the docker service through Salt.
 # Kubelet or our health checker will start it.  But we use service.enabled,
 # so we still have a `service: docker` node for our DAG.
-{% if grains.cloud is defined and grains.cloud == 'aws' %}
+{% if config.cloud is defined and config.cloud == 'aws' %}
   service.enabled
 {% else %}
   service.running:

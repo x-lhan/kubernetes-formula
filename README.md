@@ -43,8 +43,7 @@ In cluster:
 * Pillar and grains data preparation:
   1. (Only for multi-clusters) scope nodes into different clusters by identifying node's grains data `k8s_env` with the same cluster environment name(e.g. stage/qa etc.); For the nodes do not have `k8s_env` grain set will be added into the `defaults` clusters.
   2. Create pillar data file based on `pillar.example`/`pillar-multi-cluster.example` file and modify as needed.(Master/pool nodes grouping can be confirmed with command like: `salt ANY_NODE mine.get 'I@kubernetes:[master|pool] and I@kubernetes:k8s_env:[K8S_ENV]' network.internal_ip compound`); 
-  3. (Only for aws) make sure grains data `cloud` is `aws` for all aws nodes;
-  4. Generate new or reuse existing TLS certificates and share among nodes:
+  3. Generate new or reuse existing TLS certificates and share among nodes:
   
       * (Only for generate new)Apply `kuberentes.cert.configured` state to one master node.
       * Copy all newly generated(using `kuberentes.cert.view` for convenience) or existing certs contents into pillar `kubernetes:certs`.
@@ -61,8 +60,8 @@ In cluster:
 
 * Add steps:
 
-    1. make sure pillar data `kubernetes:master` is true for the host need to add; (Required for aws) make sure grains data `cloud` is `aws`; (Only for multi-clusters) fill `k8s_env` grain data.
-    2. make sure grain data `initial_etcd_cluster_state` is "existing" for the host need to add; (Required for aws) make sure grains data `cloud` is `aws`
+    1. make sure pillar data `kubernetes:master` is true for the host need to add; (Only for multi-clusters) fill `k8s_env` grain data.
+    2. make sure grain data `initial_etcd_cluster_state` is "existing" for the host need to add;
     3. run `salt 'ALL_NODE_*' saltutil.refresh_pillar` to update pillar data
     4. run `salt 'TARGET_MASTER_NODE' state.sls kubernetes.running` to apply kubernetes state
     5. confirm the ip address of the host need to add with command like `salt TARGET_MASTER_NODE grains.get ip_interfaces:eth0`
@@ -91,7 +90,7 @@ In cluster:
 
 * Add steps:
 
-    1. make sure pillar data `kubernetes:pool` is true for the host need to add; (Required for aws) make sure grains data `cloud` is `aws`; (Only for multi-clusters) fill `k8s_env` grain data.
+    1. make sure pillar data `kubernetes:pool` is true for the host need to add; (Only for multi-clusters) fill `k8s_env` grain data.
     2. run `salt 'TARGET_POOL_NODE' state.sls kubernetes.running` to apply kubernetes state
 
 * Remove steps:
