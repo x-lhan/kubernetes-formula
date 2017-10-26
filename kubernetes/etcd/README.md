@@ -43,18 +43,35 @@ Kubernetes cluster rely on etcd to store its state. So please first ensure etcd 
 
 ## Restore
 
-  Restore is done when disaster happened to the cluster(such as 2 out of 3 node has lost). Here is some manually steps to restore a single etcd cluster member:
-  
-  1. Make sure kubernetes/etcd are not running on the target host. (Unnecessary for new system. But old configuration state can be removed by `kubernetes.kubelet.removed` state)
-  2. Locate the latest EBS snapshot of volume(tags with "Value": "kube-etcd-snapshot-pvc","Key": "kubernetes.io/created-for/pvc/name")
-  3. Create an volume from the above snapshot within the same availability zone of the target host. (`aws ec2 create-volume --region us-east-1 --availability-zone us-east-1a --snapshot-id snap-066877671789bd71b --volume-type io1 --iops 1000`)
-  4. Attach the above volume to target host. (`aws ec2 attach-volume --volume-id vol-0e1c163e3b3 --instance-id i-02603827c9c --device /dev/xvdbd`)
-  5. Mount the volume to `/mnt/etcd` (`mkdir /mnt/etcd; mount /dev/xvdbd /mnt/etcd`) 
-  6. (Optional) Make sure `/mnt/etcd/snapshot.db` and `/mnt/etcd/snapshot-events.db` exists; etcd snapshot status can be checked with command ` ETCDCTL_API=3 etcdctl --write-out=table snapshot status /mnt/etcd/snapshot.db`
-  7. Apply `kubernetes.etcd.restored` state to target host.
-  8. Clean up after mess.(`umount /dev/xvdbd` and `aws ec2 detach-volume --volume-id vol-0e1c163e3b3; aws ec2 delete-volume --volume-id vol-0e1c163e3b3`) 
-  
-  After apply the above steps to all master node. Apply `kubernetes.running` state to all master node, then kubernetes cluster should be restored.
+  You can use the etcd_restore module to restore a failed etcd cluster. There are a few requirements before you can start the restore process.
+
+  You'll need to locate the etcd backup ebs volume or ebs volume AWS snapshot. Once you locate the snapshot.db and snapshot-events.db files corresponding to your etcd cluster, place them into the following salt fs accessible folder:
+
+  ```
+  salt://kubernetes/etcd/restore/
+  ```
+
+  Make sure your mine and pillar data are accurate and up to date:
+
+  ```
+  salt etcd_member* saltutil.sync_all
+  salt etcd_member* saltutil.refresh_pillar
+  salt etcd_member* mine.update
+  salt etcd_member* saltutil.refresh_pillar
+  ```
+
+  Use the etcd\_restore.end\_to\_end\_restore module function, targetting all the etcd members you wish to restore and start the kubelet after that's done. There are several arguments that can be passed to end\_to\_end\_etcd\_restore, but by default, this will use mine and pillar data to perform the restore. If you wish to run the module, overriding some of the arguments, please take a look at the etcd\_restore module for more information.
+
+  ```
+  salt etcd_member* etcd_restore.end_to_end_etcd_restore
+  salt etcd_member* etcd_restore.start_kubelet
+  ```
+
+  You should have a functioning etcd cluster after this. You can verify the cluster health by running the following command on any of the etcd members:
+
+  ```
+  salt etcd_member_1 cmd.run 'etcdctl cluster-health'
+  ```
   
 ## Reference
 
